@@ -1,0 +1,14 @@
+{
+  "@@locale": "en",
+  "appName": "AIMST Food Hub",
+  "signIn": "SIGN IN",
+  "login": "Log in",
+  "forgotPassword": "Forgot Password",
+  "registerNow": "Register Now",
+  "username": "Username",
+  "email": "Email",
+  "password": "Password (NDP)",
+  "loginFailed": "Login Failed",
+  "someDetailsWrong": "Some details may be wrong",
+  "close": "Close"
+}

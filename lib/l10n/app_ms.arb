@@ -1,0 +1,14 @@
+{
+  "@@locale": "ms",
+  "appName": "AIMST Food Hub",
+  "signIn": "LOG MASUK",
+  "login": "Log masuk",
+  "forgotPassword": "Lupa Kata Laluan",
+  "registerNow": "Daftar Sekarang",
+  "username": "Nama Pengguna",
+  "email": "E-mel",
+  "password": "Kata Laluan (NDP)",
+  "loginFailed": "Log Masuk Gagal",
+  "someDetailsWrong": "Beberapa butiran mungkin salah",
+  "close": "Tutup"
+}

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
 import 'package:food_delivery_app/features/aimst_food_hub_screen.dart';
+import 'package:food_delivery_app/features/login_screen.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart'; // Auto-generated
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -27,10 +30,21 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey, // Add the navigator key here
       title: 'AIMST Food Hub',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate, // Generated delegate
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ms'),
+      ],
       theme: AppTheme.lightTheme, // Apply your defined theme here
-      initialRoute: '/info',
+      initialRoute: '/login',
       routes: {
          '/info': (context) => AimstFoodHubScreen(),
+         '/login':(context) => LoginScreen(),
         // '/dashboard': (context) => const DashboardScreen(),
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/register': (context) => const RegisterScreen(),
