@@ -40,6 +40,9 @@ dependencies:
    sdk: flutter
   intl: ^0.20.2
   flutter_gen: ^5.10.0
+  image_picker: ^1.1.2
+  firebase_storage: ^12.4.7
+  firebase_messaging: ^15.2.7
 
 dev_dependencies:
   flutter_test:

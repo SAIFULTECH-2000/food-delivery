@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
 import 'package:food_delivery_app/features/aimst_food_hub_screen.dart';
 import 'package:food_delivery_app/features/login_screen.dart';
+import 'package:food_delivery_app/features/register_screen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart'; // Auto-generated
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -45,9 +46,10 @@ class MyApp extends StatelessWidget {
       routes: {
          '/info': (context) => AimstFoodHubScreen(),
          '/login':(context) => LoginScreen(),
+         '/register': (context) => const RegisterScreen(),
+
         // '/dashboard': (context) => const DashboardScreen(),
         // '/blockDetail': (context) => const BlockDetailScreen(),
-        // '/register': (context) => const RegisterScreen(),
         // '/survey': (context) => SurveyPage(),
         // '/profile': (context) => const UserProfileScreen(),
         // '/forgotPasswordPage': (context) => ForgotPasswordPage(),
