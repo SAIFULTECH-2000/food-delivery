@@ -78,6 +78,7 @@ flutter:
     - assets/sambal_chicken.jpg
     - assets/fried_noodles.jpg
     - assets/milo_ice.png
+    - assets/zinger_burger.jpg
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
