@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
 import 'package:food_delivery_app/features/aimst_food_hub_screen.dart';
+import 'package:food_delivery_app/features/dashboard_Screen.dart';
 import 'package:food_delivery_app/features/login_screen.dart';
 import 'package:food_delivery_app/features/register_screen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart'; // Auto-generated
@@ -42,13 +43,12 @@ class MyApp extends StatelessWidget {
         Locale('ms'),
       ],
       theme: AppTheme.lightTheme, // Apply your defined theme here
-      initialRoute: '/login',
+      initialRoute: '/dashboard',
       routes: {
          '/info': (context) => AimstFoodHubScreen(),
          '/login':(context) => LoginScreen(),
          '/register': (context) => const RegisterScreen(),
-
-        // '/dashboard': (context) => const DashboardScreen(),
+         '/dashboard': (context) => const DashboardScreen(),
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/survey': (context) => SurveyPage(),
         // '/profile': (context) => const UserProfileScreen(),
