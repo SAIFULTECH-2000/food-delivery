@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
 import 'package:food_delivery_app/features/OrderDetailScreen.dart';
 import 'package:food_delivery_app/features/aimst_food_hub_screen.dart';
+import 'package:food_delivery_app/features/cart_screen.dart';
 import 'package:food_delivery_app/features/dashboard_Screen.dart';
 import 'package:food_delivery_app/features/login_screen.dart';
 import 'package:food_delivery_app/features/menu_screen.dart';
@@ -55,6 +56,7 @@ class MyApp extends StatelessWidget {
         '/menu': (context) => const BrowseFoodScreen(),
           '/myOrder': (context) => const MyOrderScreen(),
           '/orderDetail': (context) => OrderDetailScreen(),
+          '/cart' : (context) => CartScreen(),
 
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/survey': (context) => SurveyPage(),
