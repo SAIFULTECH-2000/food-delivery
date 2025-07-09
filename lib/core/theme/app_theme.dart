@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 MaterialColor createMaterialColor(Color color) {
-  List<double> strengths = <double>[.05]; // Added type <double>
-  Map<int, Color> swatch = {};
-  final int r = color.red, g = color.green, b = color.blue;
+  List<double> strengths = <double>[.05];
+  final Map<int, Color> swatch = {};
+
+  // Assuming color.r, color.g, color.b, color.a are doubles from 0 to 1
+  final int r = (color.r * 255).round();
+  final int g = (color.g * 255).round();
+  final int b = (color.b * 255).round();
+  final int a = (color.a * 255).round();
 
   for (int i = 1; i < 10; i++) {
     strengths.add(0.1 * i);
@@ -17,19 +22,21 @@ MaterialColor createMaterialColor(Color color) {
       1,
     );
   }
-  return MaterialColor(color.value, swatch);
+
+  int argb = (a << 24) | (r << 16) | (g << 8) | b;
+  return MaterialColor(argb, swatch);
 }
 
 class AppTheme {
-  static final Color _primaryDark = const Color(0xFF1A1A1A); // Almost black from logo text
-  static final MaterialColor primaryMaterialColor = createMaterialColor(_primaryDark);
+  static final Color _primaryDark = const Color(0xFF1A1A1A);
+  static final MaterialColor primaryMaterialColor = createMaterialColor(
+    _primaryDark,
+  );
 
-  // Accent colors from logo
-  static const Color accentRed = Color(0xFFE74C3C); // Chicken/drink red
-  static const Color accentGreen = Color(0xFF2ECC71); // Cutlery/user green
-  static const Color accentGold = Color(0xFFFFEB3B); // Sparkles gold
+  static const Color accentRed = Color(0xFFE74C3C);
+  static const Color accentGreen = Color(0xFF2ECC71);
+  static const Color accentGold = Color(0xFFFFEB3B);
 
-  // Canvas background color
   static const Color canvasCream = Color(0xFFF8F4ED);
 
   static ThemeData lightTheme = ThemeData(
@@ -47,10 +54,10 @@ class AppTheme {
       onPrimary: Colors.white,
       onSecondary: Colors.black,
       error: accentRed,
-      background: canvasCream,
-      surface: Colors.white,
-      onSurface: _primaryDark,
-      onBackground: _primaryDark,
+      surface: canvasCream, // use this for background surfaces
+      onSurface:
+          _primaryDark, // use this for text/icons on surfaces and background
+      // Remove onBackground entirely
     ),
 
     appBarTheme: const AppBarTheme(
@@ -66,13 +73,28 @@ class AppTheme {
     ),
 
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
-      headlineLarge: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.bold),
+      displayLarge: TextStyle(
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.bold,
+      ),
+      displayMedium: TextStyle(
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.bold,
+      ),
+      displaySmall: TextStyle(
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.bold,
+      ),
+      headlineLarge: TextStyle(
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.bold,
+      ),
       headlineMedium: TextStyle(color: Color(0xFF1A1A1A)),
       headlineSmall: TextStyle(color: Color(0xFF1A1A1A)),
-      titleLarge: TextStyle(color: Color(0xFF1A1A1A), fontWeight: FontWeight.w600),
+      titleLarge: TextStyle(
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.w600,
+      ),
       titleMedium: TextStyle(color: Color(0xFF1A1A1A)),
       titleSmall: TextStyle(color: Color(0xFF1A1A1A)),
       bodyLarge: TextStyle(color: Color(0xFF1A1A1A)),
@@ -87,27 +109,24 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: accentGreen,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: accentGreen,
-      ),
+      style: TextButton.styleFrom(foregroundColor: accentGreen),
     ),
 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: _primaryDark,
-        side: const BorderSide(color: Color(0xFF1A1A1A), width: 1.5),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: _primaryDark.withAlpha((0.5 * 255).round()),
+          width: 1.5,
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
@@ -118,30 +137,31 @@ class AppTheme {
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: _primaryDark.withOpacity(0.5)),
+        borderSide: BorderSide(
+          color: _primaryDark.withAlpha((0.5 * 255).round()),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: _primaryDark.withOpacity(0.3)),
+        borderSide: BorderSide(
+          color: _primaryDark.withAlpha((0.3 * 255).round()),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: accentGreen, width: 2),
       ),
-      labelStyle: TextStyle(color: _primaryDark.withOpacity(0.7)),
-      hintStyle: TextStyle(color: _primaryDark.withOpacity(0.5)),
+      labelStyle: TextStyle(color: _primaryDark.withAlpha((0.7 * 255).round())),
+      hintStyle: TextStyle(color: _primaryDark.withAlpha((0.5 * 255).round())),
       contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
     ),
 
-cardTheme: CardThemeData(
-  color: Colors.white, // Card background color
-  elevation: 2, // Subtle shadow
-  shadowColor: Colors.black.withOpacity(0.2),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(10),
-  ),
-  margin: const EdgeInsets.all(8),
-),
-
+    cardTheme: CardThemeData(
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: Colors.black.withAlpha((0.2 * 255).round()),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.all(8),
+    ),
   );
 }

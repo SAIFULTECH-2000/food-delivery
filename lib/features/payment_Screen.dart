@@ -61,10 +61,13 @@ class PaymentScreen extends StatelessWidget {
                       title: const Text('Payment Successful'),
                       content: const Text('Thank you! Your order has been placed.'),
                       actions: [
-                        TextButton(
-                          onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/')),
-                          child: const Text('OK'),
-                        ),
+                       TextButton(
+  onPressed: () {
+    Navigator.of(context).pop(); // close dialog first
+    Navigator.of(context).pushNamedAndRemoveUntil('/orderDetail', (route) => false);
+  },
+  child: const Text('OK'),
+),
                       ],
                     ),
                   );

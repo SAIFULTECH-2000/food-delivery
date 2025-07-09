@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
 class AimstFoodHubScreen extends StatefulWidget {
-  const AimstFoodHubScreen({Key? key}) : super(key: key);
+  const AimstFoodHubScreen({super.key});
 
   @override
   State<AimstFoodHubScreen> createState() => _AimstFoodHubScreenState();
 }
 
 class _AimstFoodHubScreenState extends State<AimstFoodHubScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Navigate to login after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushReplacementNamed(context, '/login');
-    });
-  }
+@override
+void initState() {
+  super.initState();
+
+  Future.delayed(const Duration(seconds: 5), () {
+    if (!mounted) return; // <-- Check if widget is still mounted
+    Navigator.pushReplacementNamed(context, '/login');
+  });
+}
 
   @override
   Widget build(BuildContext context) {

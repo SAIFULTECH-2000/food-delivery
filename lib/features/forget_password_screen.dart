@@ -15,19 +15,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
 
-  Future<void> _resetPassword(BuildContext context) async {
+  Future<void> _resetPassword() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
         await FirebaseAuth.instance.sendPasswordResetEmail(
           email: emailController.text.trim(),
         );
 
+        if (!mounted) return; // <-- Guard mounted before using context
         _showSuccessDialog(context, 'Password reset email has been sent.');
       } catch (e) {
+        if (!mounted) return; // <-- Guard mounted before using context
         _showErrorDialog(context, e.toString());
       }
     }
   }
+
 
   void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
@@ -144,7 +147,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
 
                       ElevatedButton(
-                        onPressed: () => _resetPassword(context),
+                        onPressed: () => _resetPassword(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           shape: RoundedRectangleBorder(

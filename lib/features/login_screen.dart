@@ -6,63 +6,58 @@ import '../widgets/common/customtextfield.dart';
 import '../widgets/common/topwaveclipper.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  LoginScreenState createState() => LoginScreenState();
+}
+
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  LoginScreen({super.key});
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-  Future<void> _login(BuildContext context) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        UserCredential userCredential = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-              email: emailController.text.trim(),
-              password: passwordController.text.trim(),
-            );
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('username', emailController.text.trim());
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', emailController.text.trim());
 
-        if (userCredential.user?.uid != null) {
-          await prefs.setString('uuid', userCredential.user!.uid);
-          await saveUserDataInSession(userCredential);
-          await saveBookingData(userCredential.user!.uid);
-          Navigator.pushNamed(context, '/dashboard');
-        }
-      } catch (e) {
-        _showLoginErrorDialog(context, 'Some details may be wrong');
+      if (userCredential.user?.uid != null) {
+        await prefs.setString('uuid', userCredential.user!.uid);
+        await saveUserDataInSession(userCredential);
+        await saveBookingData(userCredential.user!.uid);
+
+        if (!mounted) return;
+        Navigator.of(context).pushNamed('/dashboard');
       }
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Login Error'),
+          content: const Text('Some details may be wrong'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
-  void _showLoginErrorDialog(BuildContext context, String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.error, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Login Failed'),
-            ],
-          ),
-          content: Text(errorMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +159,7 @@ class LoginScreen extends StatelessWidget {
 
                       // Log In Button
                       ElevatedButton(
-                        onPressed: () => _login(context),
+                        onPressed: () => _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           shape: RoundedRectangleBorder(
@@ -318,9 +313,9 @@ Future<void> saveUserDataInSession(UserCredential userCredential) async {
         await prefs.setString('username', userData['username'] ?? '');
       }
 
-      print('User data saved in session.');
+     
     } else {
-      print('User data not found.');
+   
     }
   }
 }
@@ -342,6 +337,6 @@ Future<void> saveBookingData(String userUid) async {
     await prefs.setString('room', bookingData['room'] ?? '');
     await prefs.setString('status', bookingData['status'] ?? '');
   } else {
-    print('No bookings found for this user.');
+   
   }
 }

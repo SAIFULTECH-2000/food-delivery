@@ -64,7 +64,7 @@ class BookingBox extends StatelessWidget {
               Container(
                 width: 50 * (1 - occupancy),
                 height: 50,
-                color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.2), // Light grey to indicate unavailability
+              color: const Color.fromARGB(51, 255, 255, 255), // same as 20% opacity white
               ),
             Center(
               child: Text(

@@ -21,64 +21,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Future<void> _register(BuildContext context) async {
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
-        );
+Future<void> _register() async {
+  if (!(_formKey.currentState?.validate() ?? false)) return;
 
-        String uid = userCredential.user!.uid;
+  // Capture Navigator and maybe other context-dependent stuff BEFORE async gaps
+  final navigator = Navigator.of(context);
 
-        // Save user data in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'username': usernameController.text.trim(),
-          'fullName': fullNameController.text.trim(),
-          'email': emailController.text.trim(),
-          // Add other default fields if necessary
-        });
+  try {
+    UserCredential userCredential = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-        // Save data in SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('uuid', uid);
-        await prefs.setString('username', usernameController.text.trim());
-        await prefs.setString('fullName', fullNameController.text.trim());
-        await prefs.setString('email', emailController.text.trim());
+    String uid = userCredential.user!.uid;
 
-        Navigator.pushNamed(context, '/dashboard');
-      } catch (e) {
-        _showRegisterErrorDialog(context, e.toString());
-      }
-    }
-  }
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'username': usernameController.text.trim(),
+      'fullName': fullNameController.text.trim(),
+      'email': emailController.text.trim(),
+    });
 
-  void _showRegisterErrorDialog(BuildContext context, String errorMessage) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('uuid', uid);
+    await prefs.setString('username', usernameController.text.trim());
+    await prefs.setString('fullName', fullNameController.text.trim());
+    await prefs.setString('email', emailController.text.trim());
+
+    // Check mounted here before using context or navigator
+    if (!mounted) return;
+
+    navigator.pushNamed('/dashboard');
+  } catch (e) {
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.error, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Registration Failed'),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Error'),
+        content: Text(e.toString()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text('OK'),
           ),
-          content: Text(errorMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
 
                       ElevatedButton(
-                        onPressed: () => _register(context),
+                        onPressed: () => _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           shape: RoundedRectangleBorder(

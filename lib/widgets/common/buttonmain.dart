@@ -19,13 +19,8 @@ class ButtonMain extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomLeft,
       child: ElevatedButton(
-        onPressed: () async {
-          // Save the block name to SharedPreferences
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('selected_block', blockName);
-
-          // Navigate to the specified route
-          Navigator.pushNamed(context, routeName);
+        onPressed: () {
+          _handleButtonPress(context);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[900],
@@ -33,8 +28,21 @@ class ButtonMain extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(label, style: const TextStyle(color: Colors.white)),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
     );
+  }
+
+  // Async-safe navigation handler
+  void _handleButtonPress(BuildContext context) async {
+    final navigator = Navigator.of(context); // Capture navigator before await
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_block', blockName);
+
+    navigator.pushNamed(routeName); // Safe to use here
   }
 }
