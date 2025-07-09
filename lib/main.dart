@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
+import 'package:food_delivery_app/features/feedbackscreen.dart';
+import 'package:food_delivery_app/features/notifications_screen.dart';
 import 'package:food_delivery_app/features/order_detail_screen.dart';
 import 'package:food_delivery_app/features/aimst_food_hub_screen.dart';
 import 'package:food_delivery_app/features/cart_screen.dart';
@@ -11,6 +13,7 @@ import 'package:food_delivery_app/features/my_order_screen.dart';
 import 'package:food_delivery_app/features/payment_screen.dart';
 import 'package:food_delivery_app/features/profile_screen.dart';
 import 'package:food_delivery_app/features/register_screen.dart';
+import 'package:food_delivery_app/features/vendorpanelscreen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart'; // Auto-generated
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -61,6 +64,9 @@ class MyApp extends StatelessWidget {
           '/cart' : (context) => CartScreen(),
         '/payment': (context) => PaymentScreen(),
         '/profile' : (context) => ProfileScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
+'/vendor': (context) => const VendorPanelScreen(),
+'/feedback': (context) => const FeedbackScreen(),
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/survey': (context) => SurveyPage(),
         // '/profile': (context) => const UserProfileScreen(),
