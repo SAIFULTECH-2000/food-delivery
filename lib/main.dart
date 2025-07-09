@@ -9,6 +9,7 @@ import 'package:food_delivery_app/features/login_screen.dart';
 import 'package:food_delivery_app/features/menu_screen.dart';
 import 'package:food_delivery_app/features/my_order_screen.dart';
 import 'package:food_delivery_app/features/payment_screen.dart';
+import 'package:food_delivery_app/features/profile_screen.dart';
 import 'package:food_delivery_app/features/register_screen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart'; // Auto-generated
 
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
           '/orderDetail': (context) => OrderDetailScreen(),
           '/cart' : (context) => CartScreen(),
         '/payment': (context) => PaymentScreen(),
+        '/profile' : (context) => ProfileScreen(),
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/survey': (context) => SurveyPage(),
         // '/profile': (context) => const UserProfileScreen(),
