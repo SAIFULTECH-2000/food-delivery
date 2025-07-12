@@ -30,8 +30,6 @@ class LoginScreenState extends State<LoginScreen> {
       );
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('username', emailController.text.trim());
-
       if (userCredential.user?.uid != null) {
         await prefs.setString('uuid', userCredential.user!.uid);
         await saveUserDataInSession(userCredential);
@@ -106,25 +104,6 @@ class LoginScreenState extends State<LoginScreen> {
                         child: Column(
                           children: [
                             // Username TextField
-                            TextFormField(
-                              controller: usernameController,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.person),
-                                labelText: 'Username',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your username';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 10),
-
-                            // Email TextField
                             CustomTextField(
                               controller: emailController,
                               labelText: 'Email',
@@ -159,7 +138,7 @@ class LoginScreenState extends State<LoginScreen> {
 
                       // Log In Button
                       ElevatedButton(
-                        onPressed: () => _login,
+                        onPressed: () => _login(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           shape: RoundedRectangleBorder(

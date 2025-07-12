@@ -44,7 +44,6 @@ Future<void> _register() async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('uuid', uid);
-    await prefs.setString('username', usernameController.text.trim());
     await prefs.setString('fullName', fullNameController.text.trim());
     await prefs.setString('email', emailController.text.trim());
 
@@ -118,22 +117,6 @@ Future<void> _register() async {
                         child: Column(
                           children: [
                             // Username
-                            TextFormField(
-                              controller: usernameController,
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.person),
-                                labelText: 'Username',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your username';
-                                }
-                                return null;
-                              },
-                            ),
                             const SizedBox(height: 10),
 
                             // Full Name
@@ -192,7 +175,7 @@ Future<void> _register() async {
                       ),
 
                       ElevatedButton(
-                        onPressed: () => _register,
+                        onPressed: () => _register(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           shape: RoundedRectangleBorder(
