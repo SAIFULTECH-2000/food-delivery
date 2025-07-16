@@ -14,7 +14,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final fullNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
-  final imageUrlController = TextEditingController();
+
+  String? selectedLanguage;
 
   bool isLoading = true;
 
@@ -30,7 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     fullNameController.text = prefs.getString('fullName') ?? '';
     emailController.text = prefs.getString('email') ?? '';
     phoneController.text = prefs.getString('phone') ?? '';
-    imageUrlController.text = prefs.getString('profileImageUrl') ?? '';
+    selectedLanguage = prefs.getString('language');
 
     setState(() {
       isLoading = false;
@@ -44,7 +45,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await prefs.setString('fullName', fullNameController.text.trim());
     await prefs.setString('email', emailController.text.trim());
     await prefs.setString('phone', phoneController.text.trim());
-    await prefs.setString('profileImageUrl', imageUrlController.text.trim());
+    if (selectedLanguage != null) {
+      await prefs.setString('language', selectedLanguage!);
+    }
 
     if (!mounted) return;
     Navigator.pop(context);
@@ -58,6 +61,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
+         leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          },
+        ),
         title: const Text('Edit Profile', style: TextStyle(color: Colors.black)),
         backgroundColor: AppTheme.canvasCream,
         elevation: 0,
@@ -93,9 +102,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           value == null || value.isEmpty ? 'Enter your phone' : null,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: imageUrlController,
-                      decoration: _buildInputDecoration('Profile Image URL', Icons.image),
+                    DropdownButtonFormField<String>(
+                      decoration: _buildInputDecoration('Choose Language', Icons.language),
+                      value: selectedLanguage,
+                      items: const [
+                        DropdownMenuItem(value: 'English', child: Text('English')),
+                        DropdownMenuItem(value: 'Malay', child: Text('Malay')),
+                        DropdownMenuItem(value: 'Chinese', child: Text('Chinese')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedLanguage = value;
+                        });
+                      },
+                      validator: (value) => value == null || value.isEmpty ? 'Select a language' : null,
                     ),
                     const SizedBox(height: 30),
                     ElevatedButton(

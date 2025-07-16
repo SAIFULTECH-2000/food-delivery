@@ -21,41 +21,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const PlaceholderScreen('Profile'),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+void _onItemTapped(int index) {
+  setState(() {
+    _selectedIndex = index;
+  });
 
+  switch (index) {
+    case 0:
+      Navigator.pushReplacementNamed(context, '/dashboard');
+      break;
+    case 1:
+      Navigator.pushReplacementNamed(context, '/cart');
+      break;
+    case 2:
+      Navigator.pushReplacementNamed(context, '/notifications');
+      break;
+  }
+}
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Dashboard',
+int cartCount = 3; // Example count, you can update it dynamically later.
+
+
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: _pages[_selectedIndex], // Your pages list
+    bottomNavigationBar: BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
+      selectedItemColor: Theme.of(context).primaryColor,
+      unselectedItemColor: Colors.grey,
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.white,
+      items: [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Stack(
+            children: [
+              const Icon(Icons.shopping_cart),
+              if (cartCount > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$cartCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
+          label: 'Cart',
+        ),
+         BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
             label: 'Orders',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-        ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+
 }
 
 // Extract your current dashboard UI into its own widget

@@ -1,25 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class OrderDetailScreen extends StatelessWidget {
-  final String orderId = '11234';
-  final int currentStep = 2; // 0: Order Received, 1: Preparing, 2: Out for Delivery, 3: Delivered
+  final String orderId;
 
-  final List<Map<String, dynamic>> orderHistory = [
-    {
-      'name': 'Fried Noodles',
-      'quantity': 2,
-    },
-    {
-      'name': 'Milo Ice',
-      'quantity': 1,
-    },
-  ];
-
-  OrderDetailScreen({super.key});
+  const OrderDetailScreen({super.key, required this.orderId});
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
@@ -29,100 +21,118 @@ class OrderDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
+        title: const Text('Order Details', style: TextStyle(color: Colors.black)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order ID
-            Text(
-              'Order $orderId',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('myorder')
+            .doc(orderId)
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Order not found.'));
+          }
 
-            // Progress tracker
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          final orderData = snapshot.data!.data() as Map<String, dynamic>;
+
+          DateTime orderTime = (orderData['createdAt'] as Timestamp).toDate();
+          int currentStep = _getStatusIndex(orderTime);
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStep('Order Received', 0),
-                _buildStep('Preparing', 1),
-                _buildStep('Out for Delivery', 2),
-                _buildStep('Delivered', 3),
+                Text(
+                  'Order ID: $orderId',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Progress Tracker
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStep('Order Received', 0, currentStep),
+                    _buildStep('Preparing', 1, currentStep),
+                    _buildStep('Out for Delivery', 2, currentStep),
+                    _buildStep('Delivered', 3, currentStep),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                LinearProgressIndicator(
+                  value: (currentStep + 1) / 4,
+                  color: AppTheme.accentGreen,
+                  backgroundColor: Colors.grey[300],
+                ),
+                const SizedBox(height: 20),
+
+                // Map Placeholder
+                Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.map, size: 50, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                const Text(
+                  'ORDER HISTORY',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+
+                Card(
+                  child: ListTile(
+                    leading: Image.network(
+                      orderData['imageUrl'] ?? '',
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.image),
+                    ),
+                    title: Text(orderData['name'] ?? ''),
+                    subtitle: Text('${orderData['quantity']} time'),
+                    trailing: TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${orderData['name']} reordered')),
+                        );
+                      },
+                      child: const Text('Reorder'),
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            LinearProgressIndicator(
-              value: (currentStep + 1) / 4,
-              color: AppTheme.accentGreen,
-              backgroundColor: Colors.grey[300],
-            ),
-            const SizedBox(height: 20),
-
-            // Map placeholder
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Center(
-                child: Icon(Icons.map, size: 50, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Order history title
-            const Text(
-              'ORDER HISTORY',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Order history items
-            Expanded(
-              child: ListView.builder(
-                itemCount: orderHistory.length,
-                itemBuilder: (context, index) {
-                  final item = orderHistory[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    child: ListTile(
-                      title: Text(item['name']),
-                      subtitle: Text('${item['quantity']} time'),
-                      trailing: TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${item['name']} reordered')),
-                          );
-                        },
-                        child: const Text('Reorder'),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStep(String title, int step) {
+  int _getStatusIndex(DateTime orderTime) {
+    final secondsElapsed = DateTime.now().difference(orderTime).inSeconds;
+    if (secondsElapsed < 20) return 0;
+    if (secondsElapsed < 40) return 1;
+    if (secondsElapsed < 60) return 2;
+    if (secondsElapsed < 90) return 3;
+    return 3;
+  }
+
+  Widget _buildStep(String title, int step, int currentStep) {
     bool isCompleted = step <= currentStep;
 
     return Column(

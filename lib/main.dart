@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart'; // Import your theme
+import 'package:food_delivery_app/features/ChatScreen.dart';
 import 'package:food_delivery_app/features/EditProfileScreen.dart';
 import 'package:food_delivery_app/features/feedbackscreen.dart';
 import 'package:food_delivery_app/features/notifications_screen.dart';
@@ -60,7 +61,6 @@ class MyApp extends StatelessWidget {
          '/dashboard': (context) => const DashboardScreen(),
         '/menu': (context) => const BrowseFoodScreen(),
           '/myOrder': (context) => const MyOrderScreen(),
-          '/orderDetail': (context) => OrderDetailScreen(),
           '/cart' : (context) => CartScreen(),
         '/payment': (context) => PaymentScreen(),
         '/profile' : (context) => ProfileScreen(),
@@ -68,6 +68,7 @@ class MyApp extends StatelessWidget {
 '/vendor': (context) => const VendorPanelScreen(),
 '/feedback': (context) => const FeedbackScreen(),
 '/editProfile': (context) => const EditProfileScreen(),
+'/chat': (context) => const ChatScreen(),
 
         // '/blockDetail': (context) => const BlockDetailScreen(),
         // '/survey': (context) => SurveyPage(),

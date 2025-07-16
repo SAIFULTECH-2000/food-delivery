@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class BrowseFoodScreen extends StatefulWidget {
@@ -14,14 +15,41 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
   final TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> allFoods = [];
 
+  int _selectedIndex = 1;
+  int cartCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCartCount();
+  }
+
+  Future<void> fetchCartCount() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final cartSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('cart')
+        .get();
+
+    setState(() {
+      cartCount = cartSnapshot.docs.length;
+    });
+  }
+
   Future<List<Map<String, dynamic>>> fetchFoodItems() async {
     List<Map<String, dynamic>> foodList = [];
 
     try {
-      final vendorSnapshot = await FirebaseFirestore.instance.collection('vendors').get();
+      final vendorSnapshot =
+          await FirebaseFirestore.instance.collection('vendors').get();
 
       for (var vendorDoc in vendorSnapshot.docs) {
         final foodsSnapshot = await vendorDoc.reference.collection('foods').get();
+        final vendorData = vendorDoc.data();
+        final vendorName = vendorData['name'];
 
         for (var foodDoc in foodsSnapshot.docs) {
           final data = foodDoc.data();
@@ -31,6 +59,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
             'price': data['price'],
             'imageUrl': data['imageUrl'],
             'category': data['category'],
+            'restaurantName': vendorName,
           });
         }
       }
@@ -55,6 +84,26 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
     }).toList();
   }
 
+  void _onBottomNavTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/dashboard');
+        break;
+      case 1:
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/cart');
+        break;
+      case 3:
+        Navigator.pushReplacementNamed(context, '/notifications');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +114,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pushNamed(context, '/dashboard');
+            Navigator.pushReplacementNamed(context, '/dashboard');
           },
         ),
         title: const Text(
@@ -88,7 +137,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
 
           return Column(
             children: [
-              // Search Bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
@@ -106,8 +154,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                   onChanged: (value) => setState(() {}),
                 ),
               ),
-
-              // Category Chips
               SizedBox(
                 height: 40,
                 child: ListView(
@@ -133,8 +179,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Food List
               Expanded(
                 child: filteredItems.isEmpty
                     ? const Center(child: Text('No food found'))
@@ -142,7 +186,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
                           final item = filteredItems[index];
-
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: Card(
@@ -152,7 +195,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  // Image
                                   ClipRRect(
                                     borderRadius: const BorderRadius.only(
                                       topLeft: Radius.circular(15),
@@ -167,8 +209,6 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-
-                                  // Info
                                   Expanded(
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -199,7 +239,23 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                                           ),
                                           const SizedBox(height: 5),
                                           ElevatedButton(
-                                            onPressed: () {
+                                            onPressed: () async {
+                                              final uid = FirebaseAuth.instance.currentUser!.uid;
+                                              await FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(uid)
+                                                  .collection('cart')
+                                                  .add({
+                                                'name': item['name'],
+                                                'price': item['price'],
+                                                'imageUrl': item['imageUrl'],
+                                                'restaurantName': item['restaurantName'],
+                                                'quantity': 1,
+                                                'createdAt': FieldValue.serverTimestamp(),
+                                              });
+
+                                              fetchCartCount();
+
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
                                                   content: Text('${item['name']} added to cart'),
@@ -231,6 +287,68 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
             ],
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppTheme.accentGreen,
+        onPressed: () {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Opening chat support...')),
+  );
+  Future.delayed(const Duration(milliseconds: 500), () {
+    Navigator.pushNamed(context, '/chat');
+  });
+},
+        child: const Icon(Icons.chat, color: Colors.white),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onBottomNavTap,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Stack(
+              children: [
+                const Icon(Icons.shopping_cart),
+                if (cartCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$cartCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: 'Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Orders',
+          ),
+        ],
       ),
     );
   }
