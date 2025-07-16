@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,11 +19,14 @@ class ProfileScreenState extends State<ProfileScreen> {
   String phone = '';
   String profileImageUrl = '';
   bool isLoading = true;
+  String? userId;
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    userId = currentUser?.uid;
   }
 
   Future<void> _loadUserProfile() async {
@@ -53,6 +57,8 @@ class ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    final avatarUrl = 'https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId ?? fullName)}';
+
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
@@ -80,8 +86,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               radius: 60,
               backgroundImage: profileImageUrl.isNotEmpty
                   ? NetworkImage(profileImageUrl)
-                  : const AssetImage('assets/default_profile.png')
-                      as ImageProvider,
+                  : NetworkImage(avatarUrl),
             ),
             const SizedBox(height: 20),
             Text(

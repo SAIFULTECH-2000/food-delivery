@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
@@ -10,101 +12,120 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  String? userId;
+  late List<Widget> _pages;
 
-  // List of pages you want to switch between with the bottom nav
-  final List<Widget> _pages = [
-    const DashboardContent(),         // Your current dashboard content
-    // You can replace these placeholders with your actual screens
-    const PlaceholderScreen('Menu'),
-    const PlaceholderScreen('My Order'),
-    const PlaceholderScreen('Notifications'),
-    const PlaceholderScreen('Profile'),
-  ];
+  int cartCount = 0; // Example cart count.
 
-void _onItemTapped(int index) {
-  setState(() {
-    _selectedIndex = index;
-  });
-
-  switch (index) {
-    case 0:
-      Navigator.pushReplacementNamed(context, '/dashboard');
-      break;
-    case 1:
-      Navigator.pushReplacementNamed(context, '/cart');
-      break;
-    case 2:
-      Navigator.pushReplacementNamed(context, '/notifications');
-      break;
-  }
-}
   @override
-int cartCount = 3; // Example count, you can update it dynamically later.
+  void initState() {
+    super.initState();
+        fetchCartCount();
 
+    final currentUser = FirebaseAuth.instance.currentUser;
+    userId = currentUser?.uid;
+    _pages = [
+      DashboardContent(userId: userId),
+      const PlaceholderScreen('Menu'),
+      const PlaceholderScreen('My Order'),
+      const PlaceholderScreen('Notifications'),
+      const PlaceholderScreen('Profile'),
+    ];
+  }
+  Future<void> fetchCartCount() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
+    final cartSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('cart')
+        .get();
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: _pages[_selectedIndex], // Your pages list
-    bottomNavigationBar: BottomNavigationBar(
-      currentIndex: _selectedIndex,
-      onTap: _onItemTapped,
-      selectedItemColor: Theme.of(context).primaryColor,
-      unselectedItemColor: Colors.grey,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      items: [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Dashboard',
-        ),
-        BottomNavigationBarItem(
-          icon: Stack(
-            children: [
-              const Icon(Icons.shopping_cart),
-              if (cartCount > 0)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      '$cartCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
+    setState(() {
+      cartCount = cartSnapshot.docs.length;
+    });
+  }
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/dashboard');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/cart');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/notifications');
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: userId == null
+          ? const Center(child: CircularProgressIndicator())
+          : _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Stack(
+              children: [
+                const Icon(Icons.shopping_cart),
+                if (cartCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      textAlign: TextAlign.center,
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$cartCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
+            label: 'Cart',
           ),
-          label: 'Cart',
-        ),
-         BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag),
             label: 'Orders',
           ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
-
-}
-
-// Extract your current dashboard UI into its own widget
 class DashboardContent extends StatelessWidget {
-  const DashboardContent({super.key});
+  final String? userId;
+  const DashboardContent({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +133,6 @@ class DashboardContent extends StatelessWidget {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            // Top section: logo and profile
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
@@ -126,18 +146,22 @@ class DashboardContent extends StatelessWidget {
                     onTap: () {
                       Navigator.pushNamed(context, '/profile');
                     },
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundImage: AssetImage('assets/profile.png'),
-                    ),
+                    child: userId == null
+                        ? const CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey,
+                          )
+                        : CircleAvatar(
+                            radius: 20,
+                            backgroundImage: NetworkImage(
+                              'https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId!)}',
+                            ),
+                          ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 10),
-
-            // Buttons Grid
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: GridView.count(
@@ -178,10 +202,7 @@ class DashboardContent extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 30),
-
-            // Promotions
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Align(
@@ -212,7 +233,6 @@ class DashboardContent extends StatelessWidget {
     );
   }
 }
-
 class _DashboardButton extends StatelessWidget {
   final String icon;
   final String label;
@@ -252,8 +272,6 @@ class _DashboardButton extends StatelessWidget {
     );
   }
 }
-
-// Temporary placeholder for other tabs
 class PlaceholderScreen extends StatelessWidget {
   final String title;
   const PlaceholderScreen(this.title, {super.key});
