@@ -13,6 +13,11 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   List<Map<String, dynamic>> cartItems = [];
   bool isLoading = true;
+  bool hasSufficientBalance = false;
+  String selectedMethod = 'pickup'; // 'pickup' or 'delivery'
+  String paymentMethod = 'shopeepay'; // 'shopeepay' or 'stripe'
+
+  double deliveryFee = 0.0;
 
   @override
   void initState() {
@@ -40,127 +45,207 @@ class _CartScreenState extends State<CartScreen> {
         };
       }).toList();
       isLoading = false;
+
+      // Dummy balance check
+      hasSufficientBalance = true; // set false to simulate no balance
+    });
+  }
+
+  void updateDeliveryMethod(String method) {
+    setState(() {
+      selectedMethod = method;
+      deliveryFee = method == 'pickup' ? 0.0 : 5.00;
+    });
+  }
+
+  void updatePaymentMethod(String method) {
+    setState(() {
+      paymentMethod = method;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    double totalPrice = cartItems.fold(
+    double itemTotal = cartItems.fold(
       0.0,
       (sum, item) => sum + (item['price'] * item['quantity']),
     );
+    double totalWithDelivery = itemTotal + deliveryFee;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Cart', style: TextStyle(color: Colors.black)),
-        backgroundColor: AppTheme.canvasCream,
-        elevation: 0,
+        title: const Text('Confirm Order', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppTheme.accentGreen,
         foregroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          },
-        ),
       ),
       backgroundColor: AppTheme.canvasCream,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : cartItems.isEmpty
-              ? const Center(child: Text('Your cart is empty.'))
-              : Column(
-                  children: [
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: cartItems.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.grey),
-                        itemBuilder: (context, index) {
-                          final item = cartItems[index];
-                          return ListTile(
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                item['imageUrl'] ?? '',
-                                height: 50,
-                                width: 50,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.image),
-                              ),
-                            ),
-                            title: Text(
-                              item['name'],
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              'RM ${item['price']} x ${item['quantity']}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            trailing: Text(
-                              'RM ${(item['price'] * item['quantity']).toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.accentGreen,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (selectedMethod == 'pickup')
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Text(
+                      'Pickup Address:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total:',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'RM ${totalPrice.toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.accentGreen,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.accentGreen,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.storefront, color: Colors.red),
+                  title: const Text('Nasi Lemak Ayam Goreng Crunchy - Dataran Dwitastik'),
+                  subtitle: const Text('No 41, Jln Dwitastik 2 Dataran Dwitastik'),
+                  trailing: PopupMenuButton<String>(
+                    icon: const Icon(Icons.chevron_right),
+                    onSelected: updateDeliveryMethod,
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(value: 'pickup', child: Text('Pickup Now')),
+                      PopupMenuItem(value: 'delivery', child: Text('Order For Later')),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Text(
+                        selectedMethod == 'pickup'
+                            ? 'Pickup Now - Ready in 5 minutes'
+                            : 'Delivery - Estimated in 30-45 minutes',
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 20),
+
+                // Cart Items
+                Expanded(
+                  child: cartItems.isEmpty
+                      ? const Center(child: Text('Your cart is empty.'))
+                      : ListView.builder(
+                          itemCount: cartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = cartItems[index];
+                            return ListTile(
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  item['imageUrl'],
+                                  height: 50,
+                                  width: 50,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.image),
                                 ),
                               ),
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/payment');
-                              },
-                              child: const Text(
-                                'Proceed to Payment',
+                              title: Text(item['name']),
+                              subtitle: Text('RM ${item['price']} x ${item['quantity']}'),
+                              trailing: Text(
+                                'RM ${(item['price'] * item['quantity']).toStringAsFixed(2)}',
                                 style: TextStyle(
+                                  color: AppTheme.accentGreen,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
                                 ),
                               ),
-                            ),
+                            );
+                          },
+                        ),
+                ),
+
+                // Order Summary
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTotalRow('Item Total', 'RM ${itemTotal.toStringAsFixed(2)}'),
+                      _buildTotalRow('Delivery Fee', 'RM ${deliveryFee.toStringAsFixed(2)}'),
+                      const Divider(),
+                      _buildTotalRow(
+                        'Grand Total',
+                        'RM ${totalWithDelivery.toStringAsFixed(2)}',
+                        isBold: true,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Payment Options
+                      const Text('Payment Method:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Row(
+                        children: [
+                          ChoiceChip(
+                            label: const Text('ShopeePay'),
+                            selected: paymentMethod == 'shopeepay',
+                            onSelected: (_) => updatePaymentMethod('shopeepay'),
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: const Text('Stripe'),
+                            selected: paymentMethod == 'stripe',
+                            onSelected: (_) => updatePaymentMethod('stripe'),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      if (paymentMethod == 'shopeepay' && !hasSufficientBalance)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            'Insufficient ShopeePay balance!',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+
+                      // Place Order Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: (paymentMethod == 'shopeepay' && !hasSufficientBalance)
+                              ? null
+                              : () {
+                                  if (paymentMethod == 'stripe') {
+                                    // TODO: Integrate Stripe checkout here
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Stripe Checkout...')),
+                                    );
+                                  } else {
+                                    Navigator.pushNamed(context, '/payment');
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.accentGreen,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Text(
+                            selectedMethod == 'pickup'
+                                ? 'Place Pickup Order'
+                                : 'Place Delivery Order',
+                            style: const TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildTotalRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : null)),
+          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : null)),
+        ],
+      ),
     );
   }
 }

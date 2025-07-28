@@ -1,115 +1,120 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_stripe/flutter_stripe.dart';
 
-class PaymentScreen extends StatelessWidget {
+class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
 
-  Future<void> processPayment(BuildContext context) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
 
-    final cartRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('cart');
-    final orderRef = FirebaseFirestore.instance.collection('users').doc(uid).collection('myorder');
+class _PaymentScreenState extends State<PaymentScreen> {
+  double total = 20.50; // Sample total, you can calculate from cart
+  bool isLoading = false;
 
-    final cartSnapshot = await cartRef.get();
+  Future<void> _makeStripePayment() async {
+    setState(() => isLoading = true);
+    try {
+      // 1. Create PaymentIntent via PHP backend
+      final response = await http.post(
+        Uri.parse('https://stripe.das-innovations.com/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'amount': (total * 100).toInt(), // cents
+        }),
+      );
 
-    WriteBatch batch = FirebaseFirestore.instance.batch();
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create payment intent');
+      }
 
-    for (var doc in cartSnapshot.docs) {
-      batch.set(orderRef.doc(), doc.data());
-      batch.delete(cartRef.doc(doc.id));
+      final jsonResponse = jsonDecode(response.body);
+      final clientSecret = jsonResponse['clientSecret'];
+
+      // 2. Initialize Payment Sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'Food Delivery App',
+          style: ThemeMode.light,
+        ),
+      );
+
+      // 3. Present the Payment Sheet
+      await Stripe.instance.presentPaymentSheet();
+
+      // 4. Payment successful
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Success"),
+          content: const Text("Your payment was successful!"),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } on StripeException catch (e) {
+      print("Stripe Error: ${e.error.localizedMessage}");
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Payment Cancelled"),
+          content: Text(e.error.localizedMessage ?? 'Something went wrong'),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print("Error: $e");
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Error"),
+          content: Text("Something went wrong: $e"),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
-
-    await batch.commit();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Normally this comes from your cart total
-    final double total = 28.00;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Payment',
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: AppTheme.canvasCream,
-        elevation: 0,
-        foregroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/cart');
-          },
-        ),
-      ),
-      backgroundColor: AppTheme.canvasCream,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text('Select Payment Method',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.credit_card),
-              title: const Text('Credit/Debit Card'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.account_balance_wallet),
-              title: const Text('E-Wallet'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {},
-            ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total:', style: TextStyle(fontSize: 16)),
-                Text('RM ${total.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentGreen,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () async {
-                  await processPayment(context);
-
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Payment Successful'),
-                      content: const Text('Thank you! Your order has been placed.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                '/myOrder', (route) => false);
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('Pay Now'),
+      appBar: AppBar(title: const Text('Stripe Payment')),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Total: RM ${total.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 22)),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _makeStripePayment,
+                    child: const Text('Pay with Card'),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

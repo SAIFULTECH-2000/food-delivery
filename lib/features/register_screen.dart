@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/common/customtextfield.dart';
 import '../widgets/common/topwaveclipper.dart';
@@ -21,56 +22,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-Future<void> _register() async {
-  if (!(_formKey.currentState?.validate() ?? false)) return;
+  Future<void> _register() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-  // Capture Navigator and maybe other context-dependent stuff BEFORE async gaps
-  final navigator = Navigator.of(context);
+    // Capture Navigator and maybe other context-dependent stuff BEFORE async gaps
+    final navigator = Navigator.of(context);
 
-  try {
-    UserCredential userCredential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
-    String uid = userCredential.user!.uid;
+      String uid = userCredential.user!.uid;
 
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'username': usernameController.text.trim(),
-      'fullName': fullNameController.text.trim(),
-      'email': emailController.text.trim(),
-    });
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': usernameController.text.trim(),
+        'fullName': fullNameController.text.trim(),
+        'email': emailController.text.trim(),
+      });
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('uuid', uid);
-    await prefs.setString('fullName', fullNameController.text.trim());
-    await prefs.setString('email', emailController.text.trim());
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('uuid', uid);
+      await prefs.setString('fullName', fullNameController.text.trim());
+      await prefs.setString('email', emailController.text.trim());
 
-    // Check mounted here before using context or navigator
-    if (!mounted) return;
+      // Check mounted here before using context or navigator
+      if (!mounted) return;
 
-    navigator.pushNamed('/dashboard');
-  } catch (e) {
-    if (!mounted) return;
+      navigator.pushNamed('/dashboard');
+    } catch (e) {
+      if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Error'),
-        content: Text(e.toString()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Error'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -124,29 +123,38 @@ Future<void> _register() async {
                               controller: fullNameController,
                               decoration: InputDecoration(
                                 prefixIcon: const Icon(Icons.badge),
-                                labelText: 'Full Name',
+                                labelText: AppLocalizations.of(
+                                  context,
+                                )!.fullNameLabel,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30.0),
                                 ),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your full name';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.fullNameError;
                                 }
                                 return null;
                               },
                             ),
+
                             const SizedBox(height: 10),
 
                             // Email
                             CustomTextField(
                               controller: emailController,
-                              labelText: 'Email',
+                              labelText: AppLocalizations.of(
+                                context,
+                              )!.emailLabel,
                               icon: Icons.email,
                               obscureText: false,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterEmailError;
                                 }
                                 return null;
                               },
@@ -156,19 +164,26 @@ Future<void> _register() async {
                             // Password
                             CustomTextField(
                               controller: passwordController,
-                              labelText: 'Password',
+                              labelText: AppLocalizations.of(
+                                context,
+                              )!.passwordLabel,
                               icon: Icons.lock,
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your password';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.passwordEmptyError;
                                 }
                                 if (value.length < 6) {
-                                  return 'Password must be at least 6 characters';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.passwordLengthError;
                                 }
                                 return null;
                               },
                             ),
+
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -186,9 +201,9 @@ Future<void> _register() async {
                             vertical: 15,
                           ),
                         ),
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(color: Colors.white),
+                        child: Text(
+                          AppLocalizations.of(context)!.register,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 10),

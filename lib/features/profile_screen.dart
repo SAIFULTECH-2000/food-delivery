@@ -31,18 +31,21 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     prefs = await SharedPreferences.getInstance();
+    final loc = AppLocalizations.of(context)!;
+
     setState(() {
-      fullName = prefs.getString('fullName') ?? 'Guest User';
-      email = prefs.getString('email') ?? 'guest@example.com';
-      phone = prefs.getString('phone') ?? 'N/A';
+      fullName = prefs.getString('fullName') ?? loc.guestUser;
+      email = prefs.getString('email') ?? loc.guestEmail;
+      phone = prefs.getString('phone') ?? loc.phoneNA;
       profileImageUrl = prefs.getString('profileImageUrl') ?? '';
       isLoading = false;
     });
   }
 
-  void _logout() async {
+  Future<void> _logout() async {
     await prefs.clear();
-    await Future.delayed(const Duration(seconds: 1));
+    await FirebaseAuth.instance.signOut();
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
@@ -72,7 +75,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            tooltip: loc.logoutTooltip,
             onPressed: _logout,
           )
         ],
@@ -110,31 +113,31 @@ class ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 40),
             ElevatedButton.icon(
               icon: const Icon(Icons.history),
-              label: const Text('Order History'),
+              label: Text(loc.orderHistory),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.accentGreen,
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
-              onPressed: () =>
-                  Navigator.of(context).pushNamed('/orderHistory'),
+              onPressed: () => Navigator.of(context).pushNamed('/orderHistory'),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               icon: const Icon(Icons.edit),
-              label: const Text('Edit Profile'),
+              label: Text(loc.editProfile),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: AppTheme.accentGreen,
                 side: const BorderSide(color: AppTheme.accentGreen),
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
-              onPressed: () =>
-                  Navigator.of(context).pushNamed('/editProfile'),
+              onPressed: () => Navigator.of(context).pushNamed('/editProfile'),
             ),
           ],
         ),

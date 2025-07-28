@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 import '../widgets/common/customtextfield.dart';
 import '../widgets/common/topwaveclipper.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
@@ -120,7 +121,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       const SizedBox(height: 8),
 
                       Text(
-                        'FORGOT PASSWORD',
+                         AppLocalizations.of(context)!.forgotPassword,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 20),
@@ -131,12 +132,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           children: [
                             CustomTextField(
                               controller: emailController,
-                              labelText: 'Enter your email',
+                              labelText:  AppLocalizations.of(context)!.enterEmail,
                               icon: Icons.email,
                               obscureText: false,
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
+                               if (value == null || value.isEmpty) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterEmailError;
                                 }
                                 return null;
                               },
@@ -158,19 +161,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             vertical: 15,
                           ),
                         ),
-                        child: const Text(
-                          'Reset Password',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: Text(
+  AppLocalizations.of(context)!.resetPassword,
+  style: const TextStyle(color: Colors.white),
+),
+
                       ),
                       const SizedBox(height: 10),
 
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/login');
-                        },
-                        child: const Text('Back to Login'),
-                      ),
+                     TextButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/login');
+  },
+  child: Text(
+    AppLocalizations.of(context)!.backToLogin,
+  ),
+),
                       const SizedBox(height: 40),
 
                       ClipPath(

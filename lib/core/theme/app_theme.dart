@@ -45,7 +45,7 @@ class AppTheme {
     primarySwatch: primaryMaterialColor,
     primaryColor: _primaryDark,
 
-    scaffoldBackgroundColor: canvasCream,
+    scaffoldBackgroundColor: const Color.fromARGB(255, 237, 248, 240),
     canvasColor: canvasCream,
 
     colorScheme: ColorScheme.light(

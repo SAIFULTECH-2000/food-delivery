@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 import 'package:food_delivery_app/features/order_detail_screen.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 
 class MyOrderScreen extends StatefulWidget {
   const MyOrderScreen({super.key});
@@ -40,6 +41,12 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> statusSteps = [
+  AppLocalizations.of(context)!.restaurantIsMaking,
+  AppLocalizations.of(context)!.driverPickedUp,
+  AppLocalizations.of(context)!.driverArrived,
+  AppLocalizations.of(context)!.completed,
+];
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
@@ -51,10 +58,9 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
             Navigator.pushReplacementNamed(context, '/dashboard');
           },
         ),
-        title: const Text(
-          'My Orders',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text(AppLocalizations.of(context)!.my_order, style: const TextStyle(color: Colors.black)),
+
+      
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -66,10 +72,9 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(child: Text('No orders found'));
-            }
-
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+  return Center(child: Text(AppLocalizations.of(context)!.noOrdersFound));
+}
             final orders = snapshot.data!.docs;
 
             return ListView.builder(
@@ -162,32 +167,40 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
                           const SizedBox(height: 10),
 
                           // Progress bar status
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: statusSteps.asMap().entries.map((entry) {
-                              int stepIndex = entry.key;
-                              String step = entry.value;
-                              bool isCompleted = stepIndex <= currentStatusIndex;
+                         Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: statusSteps.asMap().entries.map((entry) {
+    int stepIndex = entry.key;
+    String step = entry.value;
+    bool isCompleted = stepIndex <= currentStatusIndex;
 
-                              return Row(
-                                children: [
-                                  Icon(
-                                    isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                    color: isCompleted ? AppTheme.accentGreen : Colors.grey,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    step,
-                                    style: TextStyle(
-                                      color: isCompleted ? Colors.black : Colors.grey[600],
-                                      fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: isCompleted ? AppTheme.accentGreen : Colors.grey,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              step,
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              style: TextStyle(
+                color: isCompleted ? Colors.black : Colors.grey[600],
+                fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }).toList(),
+)
                         ],
                       ),
                     ),

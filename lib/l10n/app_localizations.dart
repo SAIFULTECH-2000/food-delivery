@@ -98,7 +98,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'AIMST Food Hub'**
+  /// **'Food Delivery App'**
   String get appName;
 
   /// No description provided for @signIn.
@@ -160,6 +160,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @introDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This content includes alt text and speech descriptions to make images accessible for users with visual or hearing impairments, allowing screen readers to convey visual context.'**
+  String get introDescription;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @enterEmailError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get enterEmailError;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (NDP)'**
+  String get passwordLabel;
+
+  /// No description provided for @enterPasswordError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get enterPasswordError;
+
+  /// No description provided for @fullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullNameLabel;
+
+  /// No description provided for @fullNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your full name'**
+  String get fullNameError;
+
+  /// No description provided for @passwordEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get passwordEmptyError;
+
+  /// No description provided for @passwordLengthError.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordLengthError;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @loginNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Now'**
+  String get loginNow;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No description provided for @cart.
+  ///
+  /// In en, this message translates to:
+  /// **'CART'**
+  String get cart;
+
+  /// No description provided for @orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get orders;
+
+  /// No description provided for @menu.
+  ///
+  /// In en, this message translates to:
+  /// **'MENU'**
+  String get menu;
+
+  /// No description provided for @my_order.
+  ///
+  /// In en, this message translates to:
+  /// **'MY ORDER'**
+  String get my_order;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'NOTIFICATIONS'**
+  String get notifications;
+
+  /// No description provided for @promotions.
+  ///
+  /// In en, this message translates to:
+  /// **'PROMOTIONS'**
+  String get promotions;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phone;
+
+  /// No description provided for @chooseLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Language'**
+  String get chooseLanguage;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdated;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get enterName;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enterEmail;
+
+  /// No description provided for @enterPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone'**
+  String get enterPhone;
+
+  /// No description provided for @selectLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a language'**
+  String get selectLanguage;
+
+  /// No description provided for @logoutTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logoutTooltip;
+
+  /// No description provided for @orderHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Order History'**
+  String get orderHistory;
+
+  /// No description provided for @guestUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest User'**
+  String get guestUser;
+
+  /// No description provided for @guestEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'guest@example.com'**
+  String get guestEmail;
+
+  /// No description provided for @phoneNA.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get phoneNA;
+
+  /// No description provided for @browseFoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Foods'**
+  String get browseFoods;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @browse.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse'**
+  String get browse;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @rice.
+  ///
+  /// In en, this message translates to:
+  /// **'Rice'**
+  String get rice;
+
+  /// No description provided for @noodles.
+  ///
+  /// In en, this message translates to:
+  /// **'Noodles'**
+  String get noodles;
+
+  /// No description provided for @beverages.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get beverages;
+
+  /// No description provided for @snacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get snacks;
+
+  /// No description provided for @western.
+  ///
+  /// In en, this message translates to:
+  /// **'Western'**
+  String get western;
+
+  /// No description provided for @indian.
+  ///
+  /// In en, this message translates to:
+  /// **'Indian'**
+  String get indian;
+
+  /// No description provided for @noFoodsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No foods found'**
+  String get noFoodsFound;
+
+  /// No description provided for @addedToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'{itemName} added to cart'**
+  String addedToCart(Object itemName);
+
+  /// No description provided for @addedToCart_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message shown when a user adds an item to the cart'**
+  String get addedToCart_hint;
+
+  /// No description provided for @addToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get addToCart;
+
+  /// No description provided for @openingChatSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening chat support...'**
+  String get openingChatSupport;
+
+  /// No description provided for @appTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Food Assistant'**
+  String get appTitle;
+
+  /// No description provided for @askHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about food...'**
+  String get askHint;
+
+  /// No description provided for @availableCafes.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Cafes'**
+  String get availableCafes;
+
+  /// No description provided for @noVendors.
+  ///
+  /// In en, this message translates to:
+  /// **'No vendors found.'**
+  String get noVendors;
+
+  /// No description provided for @unnamedVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed Vendor'**
+  String get unnamedVendor;
+
+  /// No description provided for @myOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'My Orders'**
+  String get myOrders;
+
+  /// No description provided for @noOrdersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders found'**
+  String get noOrdersFound;
+
+  /// No description provided for @restaurantIsMaking.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant is making your order'**
+  String get restaurantIsMaking;
+
+  /// No description provided for @driverPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver picked up food'**
+  String get driverPickedUp;
+
+  /// No description provided for @driverArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver arrived at your home'**
+  String get driverArrived;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get backToLogin;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

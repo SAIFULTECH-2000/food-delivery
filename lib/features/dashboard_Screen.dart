@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,23 +16,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? userId;
   late List<Widget> _pages;
 
-  int cartCount = 0; // Example cart count.
+  int cartCount = 0;
+
+  bool _isPagesInitialized = false;
 
   @override
   void initState() {
     super.initState();
-        fetchCartCount();
+    fetchCartCount();
 
     final currentUser = FirebaseAuth.instance.currentUser;
     userId = currentUser?.uid;
-    _pages = [
-      DashboardContent(userId: userId),
-      const PlaceholderScreen('Menu'),
-      const PlaceholderScreen('My Order'),
-      const PlaceholderScreen('Notifications'),
-      const PlaceholderScreen('Profile'),
-    ];
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_isPagesInitialized) {
+      _pages = [
+        DashboardContent(userId: userId),
+        PlaceholderScreen(AppLocalizations.of(context)!.menu),
+        PlaceholderScreen(AppLocalizations.of(context)!.my_order),
+        PlaceholderScreen(AppLocalizations.of(context)!.notifications),
+        PlaceholderScreen(AppLocalizations.of(context)!.profile),
+      ];
+      _isPagesInitialized = true;
+    }
+  }
+
+
   Future<void> fetchCartCount() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -46,6 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       cartCount = cartSnapshot.docs.length;
     });
   }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -78,9 +93,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Dashboard',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: AppLocalizations.of(context)!.dashboard,
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -112,17 +127,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
               ],
             ),
-            label: 'Cart',
+            label: AppLocalizations.of(context)!.cart,
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: 'Orders',
+
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.shopping_bag),
+            label: AppLocalizations.of(context)!.orders,
           ),
         ],
       ),
     );
   }
 }
+
 class DashboardContent extends StatelessWidget {
   final String? userId;
   const DashboardContent({super.key, required this.userId});
@@ -138,10 +155,7 @@ class DashboardContent extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset(
-                    'assets/aimst_food_hub_logo.png',
-                    height: 80,
-                  ),
+                  Image.asset('assets/aimst_food_hub_logo.png', height: 80),
                   GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(context, '/profile');
@@ -173,28 +187,28 @@ class DashboardContent extends StatelessWidget {
                 children: [
                   _DashboardButton(
                     icon: 'assets/menu.png',
-                    label: 'MENU',
+                    label: AppLocalizations.of(context)!.menu,
                     onTap: () {
-                      Navigator.pushNamed(context, '/menu');
+                      Navigator.pushNamed(context, '/vendors');
                     },
                   ),
                   _DashboardButton(
                     icon: 'assets/order.png',
-                    label: 'MY ORDER',
+                    label: AppLocalizations.of(context)!.my_order,
                     onTap: () {
                       Navigator.pushNamed(context, '/myOrder');
                     },
                   ),
                   _DashboardButton(
                     icon: 'assets/notifications.png',
-                    label: 'NOTIFICATIONS',
+                    label: AppLocalizations.of(context)!.notifications,
                     onTap: () {
                       Navigator.pushNamed(context, '/notifications');
                     },
                   ),
                   _DashboardButton(
                     icon: 'assets/cart.png',
-                    label: 'CART',
+                    label: AppLocalizations.of(context)!.cart,
                     onTap: () {
                       Navigator.pushNamed(context, '/cart');
                     },
@@ -208,7 +222,7 @@ class DashboardContent extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'PROMOTIONS',
+                  AppLocalizations.of(context)!.promotions,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -233,6 +247,7 @@ class DashboardContent extends StatelessWidget {
     );
   }
 }
+
 class _DashboardButton extends StatelessWidget {
   final String icon;
   final String label;
@@ -257,21 +272,16 @@ class _DashboardButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              icon,
-              height: 60,
-            ),
+            Image.asset(icon, height: 60),
             const SizedBox(height: 10),
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ),
     );
   }
 }
+
 class PlaceholderScreen extends StatelessWidget {
   final String title;
   const PlaceholderScreen(this.title, {super.key});

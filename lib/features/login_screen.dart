@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/common/customtextfield.dart';
@@ -25,9 +26,9 @@ class LoginScreenState extends State<LoginScreen> {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (userCredential.user?.uid != null) {
@@ -55,7 +56,6 @@ class LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -93,10 +93,11 @@ class LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
 
                       // SIGN IN subtitle
-                      Text(
-                        'SIGN IN',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                  Text(
+  AppLocalizations.of(context)!.signIn,
+  style: Theme.of(context).textTheme.titleMedium,
+),
+
                       const SizedBox(height: 20),
 
                       Container(
@@ -106,12 +107,14 @@ class LoginScreenState extends State<LoginScreen> {
                             // Username TextField
                             CustomTextField(
                               controller: emailController,
-                              labelText: 'Email',
+                              labelText: AppLocalizations.of(context)!.email,
                               icon: Icons.email,
                               obscureText: false,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterEmailError;
                                 }
                                 return null;
                               },
@@ -121,12 +124,16 @@ class LoginScreenState extends State<LoginScreen> {
                             // Password TextField
                             CustomTextField(
                               controller: passwordController,
-                              labelText: 'Password (NDP)',
+                              labelText: AppLocalizations.of(
+                                context,
+                              )!.passwordLabel,
                               icon: Icons.lock,
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your password';
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterPasswordError;
                                 }
                                 return null;
                               },
@@ -149,9 +156,9 @@ class LoginScreenState extends State<LoginScreen> {
                             vertical: 15,
                           ),
                         ),
-                        child: const Text(
-                          'Log in',
-                          style: TextStyle(color: Colors.white),
+                        child: Text(
+                          AppLocalizations.of(context)!.login,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -167,13 +174,17 @@ class LoginScreenState extends State<LoginScreen> {
                                 '/forgotPasswordPage',
                               );
                             },
-                            child: const Text('Forgot Password'),
+                            child: Text(
+                              AppLocalizations.of(context)!.forgotPassword,
+                            ),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/register');
                             },
-                            child: const Text('Register Now'),
+                            child: Text(
+                              AppLocalizations.of(context)!.registerNow,
+                            ),
                           ),
                         ],
                       ),
@@ -291,11 +302,7 @@ Future<void> saveUserDataInSession(UserCredential userCredential) async {
         );
         await prefs.setString('username', userData['username'] ?? '');
       }
-
-     
-    } else {
-   
-    }
+    } else {}
   }
 }
 
@@ -315,7 +322,5 @@ Future<void> saveBookingData(String userUid) async {
     await prefs.setString('level', bookingData['level'] ?? '');
     await prefs.setString('room', bookingData['room'] ?? '');
     await prefs.setString('status', bookingData['status'] ?? '');
-  } else {
-   
-  }
+  } else {}
 }
