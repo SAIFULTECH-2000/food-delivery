@@ -39,9 +39,9 @@ class OrderDetailScreen extends StatelessWidget {
           }
 
           final orderData = snapshot.data!.data() as Map<String, dynamic>;
-
-          DateTime orderTime = (orderData['createdAt'] as Timestamp).toDate();
-          int currentStep = _getStatusIndex(orderTime);
+          final orderTime = (orderData['createdAt'] as Timestamp).toDate();
+          final int currentStep = _getStatusIndex(orderTime);
+          final String gifUrl = _getGifByStatus(currentStep);
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -61,10 +61,10 @@ class OrderDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildStep('Order Received', 0, currentStep),
-                    _buildStep('Preparing', 1, currentStep),
-                    _buildStep('Out for Delivery', 2, currentStep),
-                    _buildStep('Delivered', 3, currentStep),
+                    _buildStep('Restaurant is making your order', 0, currentStep),
+                    _buildStep('Driver picked up food', 1, currentStep),
+                    _buildStep('Driver arrived at your home', 2, currentStep),
+                    _buildStep('Enjoy your meal!', 3, currentStep),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -75,15 +75,15 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Map Placeholder
-                Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.map, size: 50, color: Colors.grey),
+                // Status GIF
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.network(
+                    gifUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, size: 50)),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -153,5 +153,19 @@ class OrderDetailScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getGifByStatus(int step) {
+    switch (step) {
+      case 0:
+        return 'https://i.pinimg.com/originals/93/5e/f3/935ef3e9c164fe37ddde01ccd8cec4ba.gif';
+      case 1:
+        return 'https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyeXl0dXZzenJyOWZlam9xeWpoOTZveXlwZngxamhtYWs3OW5kaWRrNiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ZaovLymRWG8NY9w0DD/source.gif';
+      case 2:
+        return 'https://i.pinimg.com/originals/d3/18/13/d3181322e4522cf897fa8c1a038c6a2d.gif';
+      case 3:
+      default:
+        return 'https://media.tenor.com/aOzZWYzAmsMAAAAM/yummy-food-mocha-bears.gif';
+    }
   }
 }

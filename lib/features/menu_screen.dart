@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:food_delivery_app/features/FoodDetailScreen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 
 class BrowseFoodScreen extends StatefulWidget {
@@ -68,11 +69,15 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
         final data = foodDoc.data();
         foodList.add({
           'name': data['name'],
-          'desc': data['desc'],
+          'desc': data['description'],
           'price': data['price'],
           'imageUrl': data['imageUrl'],
           'category': data['category'],
+          'calories': data['calories'] ?? '90',
           'restaurantName': vendorName,
+          'kcal':data['kcal'],
+          'minToServe':data['minToServe'],
+          'ingredients':data['ingredients'],
         });
       }
     } catch (e) {
@@ -114,20 +119,22 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
         break;
     }
   }
-   @override
+
+  @override
   Widget build(BuildContext context) {
     final filteredItems = filterItems();
-final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context)!;
 
-final categories = [
-  {'key': 'all', 'value': loc.all},
-  {'key': 'rice', 'value': loc.rice},
-  {'key': 'noodles', 'value': loc.noodles},
-  {'key': 'drinks', 'value': loc.beverages},
-  {'key': 'snacks', 'value': loc.snacks},
-  {'key': 'western', 'value': loc.western},
-  {'key': 'indian', 'value': loc.indian},
-];
+    final categories = [
+      {'key': 'All', 'value': loc.all},
+      {'key': 'rice', 'value': loc.rice},
+      {'key': 'noodles', 'value': loc.noodles},
+      {'key': 'drinks', 'value': loc.beverages},
+      {'key': 'snacks', 'value': loc.snacks},
+      {'key': 'western', 'value': loc.western},
+      {'key': 'indian', 'value': loc.indian},
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
@@ -137,162 +144,144 @@ final categories = [
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Browse Food',
-          style: TextStyle(color: Colors.black),
+        title: Text(
+          loc.browseFoods,
+          style: const TextStyle(color: Colors.black),
         ),
       ),
       body: Column(
         children: [
-         Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  child: TextField(
-    controller: searchController,
-    decoration: InputDecoration(
-      hintText: AppLocalizations.of(context)!.search,
-      prefixIcon: const Icon(Icons.search),
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide.none,
-      ),
-    ),
-    onChanged: (value) => setState(() {}),
-  ),
-),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: loc.search,
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: (value) => setState(() {}),
+            ),
+          ),
           SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-             children: categories.map((category) {
-      final isSelected = selectedCategory == category['key'];
-      return Padding(
-        padding: const EdgeInsets.only(right: 8.0),
-        child: ChoiceChip(
-          label: Text(category['value']!),
-          selected: isSelected,
-          selectedColor: AppTheme.accentGreen,
-          onSelected: (_) {
-            setState(() {
-              selectedCategory = category['key']!;
-            });
-          },
-        ),
-      );
-    }).toList(),
+              children: categories.map((category) {
+                final isSelected = selectedCategory == category['key'];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    label: Text(category['value']!),
+                    selected: isSelected,
+                    selectedColor: AppTheme.accentGreen,
+                    onSelected: (_) {
+                      setState(() {
+                        selectedCategory = category['key']!;
+                      });
+                    },
+                  ),
+                );
+              }).toList(),
             ),
           ),
           const SizedBox(height: 10),
           Expanded(
- child: filteredItems.isEmpty
-    ? Center(child: Text(AppLocalizations.of(context)!.noFoodsFound))
-
-                : ListView.builder(
-                    itemCount: filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: const BorderSide(color: Colors.black12),
+            child: filteredItems.isEmpty
+                ? Center(child: Text(loc.noFoodsFound))
+                : GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    children: filteredItems.map((item) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              transitionDuration:
+                                  const Duration(milliseconds: 400),
+                              pageBuilder: (_, __, ___) =>
+                                  FoodDetailScreen(foodItem: item),
+                              transitionsBuilder: (_, animation, __, child) {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(1, 0),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(2, 2),
+                              ),
+                            ],
                           ),
-                          child: Row(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(15),
-                                  bottomLeft: Radius.circular(15),
-                                ),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(20)),
                                 child: Image.network(
                                   item['imageUrl'] ?? '',
                                   height: 100,
-                                  width: 100,
+                                  width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.image),
+                                  errorBuilder: (_, __, ___) =>
+                                      const Icon(Icons.image, size: 100),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['name'] ?? '',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item['name'] ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Colors.red,
                                       ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        item['desc'] ?? '',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        'RM${_formatPrice(item['price'])}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          final uid =
-                                              FirebaseAuth.instance.currentUser!.uid;
-                                          await FirebaseFirestore.instance
-                                              .collection('users')
-                                              .doc(uid)
-                                              .collection('cart')
-                                              .add({
-                                            'name': item['name'],
-                                            'price': item['price'],
-                                            'imageUrl': item['imageUrl'],
-                                            'restaurantName': item['restaurantName'],
-                                            'quantity': 1,
-                                            'createdAt': FieldValue.serverTimestamp(),
-                                          });
-
-                                          fetchCartCount();
-
-                                   ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text(
-      AppLocalizations.of(context)!.addedToCart(item['name']),
-    ),
-  ),
-);
-
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.accentGreen,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                        ),
-                                      child: Text(
-  AppLocalizations.of(context)!.addToCart,
-  style: const TextStyle(color: Colors.white),
-),
-                                      ),
-                                    ],
-                                  ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${item['minToServe']} Min   ${item['kcal']} kcal',
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
                       );
-                    },
+                    }).toList(),
                   ),
           ),
         ],
@@ -301,10 +290,8 @@ final categories = [
         backgroundColor: AppTheme.accentGreen,
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text(AppLocalizations.of(context)!.openingChatSupport),
-  ),
-);
+            SnackBar(content: Text(loc.openingChatSupport)),
+          );
           Future.delayed(const Duration(milliseconds: 500), () {
             Navigator.pushNamed(context, '/chat');
           });
@@ -319,11 +306,16 @@ final categories = [
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         items: [
-       BottomNavigationBarItem(
-  icon: const Icon(Icons.home),
-  label: AppLocalizations.of(context)!.dashboard,
-),
           BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: loc.dashboard,
+          ),
+         
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.shopping_bag),
+            label: loc.orders,
+          ),
+           BottomNavigationBarItem(
             icon: Stack(
               children: [
                 const Icon(Icons.shopping_cart),
@@ -353,21 +345,10 @@ final categories = [
                   ),
               ],
             ),
-            label:  AppLocalizations.of(context)!.cart,
+            label: loc.cart,
           ),
-        BottomNavigationBarItem(
-  icon: const Icon(Icons.shopping_bag),
-  label: AppLocalizations.of(context)!.orders,
-),
         ],
       ),
     );
-  }
-
-  String _formatPrice(dynamic price) {
-    if (price is double) return price.toStringAsFixed(2);
-    if (price is int) return price.toDouble().toStringAsFixed(2);
-    if (price is String) return price;
-    return '0.00';
   }
 }

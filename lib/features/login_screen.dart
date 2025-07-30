@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:toastification/toastification.dart';
 import '../widgets/common/customtextfield.dart';
 import '../widgets/common/topwaveclipper.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'dashboard_screen.dart'; // Import your dashboard screen
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,18 +28,48 @@ class LoginScreenState extends State<LoginScreen> {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (userCredential.user?.uid != null) {
         await prefs.setString('uuid', userCredential.user!.uid);
         await saveUserDataInSession(userCredential);
-        await saveBookingData(userCredential.user!.uid);
+      
 
         if (!mounted) return;
-        Navigator.of(context).pushNamed('/dashboard');
+
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const DashboardScreen(),
+            transitionsBuilder: (_, animation, __, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.0, 0.2),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+          ),
+        );
+
+        Future.delayed(const Duration(milliseconds: 300), () {
+          toastification.show(
+            context: context,
+            title: const Text('Login Successful'),
+            description: const Text(
+              'Welcome back! Let’s explore some meals.',
+            ),
+            autoCloseDuration: const Duration(seconds: 3),
+            type: ToastificationType.success,
+            alignment: Alignment.bottomCenter,
+          );
+        });
       }
     } catch (e) {
       if (!mounted) return;
@@ -84,30 +116,24 @@ class LoginScreenState extends State<LoginScreen> {
                         height: 150,
                       ),
                       const SizedBox(height: 10),
-
-                      // App title
                       Text(
                         'AIMST Food Hub',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 8),
-
-                      // SIGN IN subtitle
-                  Text(
-  AppLocalizations.of(context)!.signIn,
-  style: Theme.of(context).textTheme.titleMedium,
-),
-
+                      Text(
+                        AppLocalizations.of(context)!.signIn,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 20),
-
                       Container(
-                        padding: const EdgeInsets.all(10), // Add padding here
+                        padding: const EdgeInsets.all(10),
                         child: Column(
                           children: [
-                            // Username TextField
                             CustomTextField(
                               controller: emailController,
-                              labelText: AppLocalizations.of(context)!.email,
+                              labelText:
+                                  AppLocalizations.of(context)!.email,
                               icon: Icons.email,
                               obscureText: false,
                               validator: (value) {
@@ -120,8 +146,6 @@ class LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                             const SizedBox(height: 10),
-
-                            // Password TextField
                             CustomTextField(
                               controller: passwordController,
                               labelText: AppLocalizations.of(
@@ -142,8 +166,6 @@ class LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-
-                      // Log In Button
                       ElevatedButton(
                         onPressed: () => _login(),
                         style: ElevatedButton.styleFrom(
@@ -162,8 +184,6 @@ class LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-
-                      // Forgot password & Register
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -188,10 +208,7 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 40),
-
-                      // Bottom wave footer
                       ClipPath(
                         clipper: BottomWaveClipper(),
                         child: Container(
@@ -224,7 +241,6 @@ class LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// Bottom Wave Clipper
 class BottomWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -254,20 +270,19 @@ class BottomWaveClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) {
-    return false;
-  }
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
+// -------------------------------
+// Reuse your existing helper functions
+// -------------------------------
 
 Future<void> saveUserDataInSession(UserCredential userCredential) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-
-  // Check if the uid is not null and save it
   if (userCredential.user?.uid != null) {
     String uuid = userCredential.user!.uid;
-    await prefs.setString('uuid', uuid); // Save UUID
+    await prefs.setString('uuid', uuid);
 
-    // Fetch user data from Firestore
     DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(uuid)
@@ -277,50 +292,18 @@ Future<void> saveUserDataInSession(UserCredential userCredential) async {
       Map<String, dynamic>? userData =
           userSnapshot.data() as Map<String, dynamic>?;
 
-      // Save each field from user data in SharedPreferences
       if (userData != null) {
         await prefs.setString('fullName', userData['fullName'] ?? '');
         await prefs.setString('email', userData['email'] ?? '');
         await prefs.setString('phone', userData['phone'] ?? '');
-        await prefs.setString('address', userData['address'] ?? '');
-        await prefs.setString('course', userData['course'] ?? '');
-        await prefs.setString('semester', userData['semester'] ?? '');
-        await prefs.setString('familyIncome', userData['familyIncome'] ?? '');
-        await prefs.setString('guardianName', userData['guardianName'] ?? '');
-        await prefs.setString('guardianPhone', userData['guardianPhone'] ?? '');
-        await prefs.setString('healthIssues', userData['healthIssues'] ?? '');
-        await prefs.setString('icNumber', userData['icNumber'] ?? '');
         await prefs.setString(
           'profileImageUrl',
           userData['profileImageUrl'] ?? '',
         );
-        await prefs.setString('race', userData['race'] ?? '');
-        await prefs.setString('religion', userData['religion'] ?? '');
-        await prefs.setString(
-          'receiptImageUrl',
-          userData['receiptImageUrl'] ?? '',
-        );
+    
         await prefs.setString('username', userData['username'] ?? '');
       }
-    } else {}
+    }
   }
 }
 
-Future<void> saveBookingData(String userUid) async {
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection('bookings')
-      .where('userUid', isEqualTo: userUid)
-      .get();
-
-  if (querySnapshot.docs.isNotEmpty) {
-    // Assuming we want to save data from the first document
-    var bookingData = querySnapshot.docs[0].data() as Map<String, dynamic>;
-
-    // Save each field in SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('blockName', bookingData['blockName'] ?? '');
-    await prefs.setString('level', bookingData['level'] ?? '');
-    await prefs.setString('room', bookingData['room'] ?? '');
-    await prefs.setString('status', bookingData['status'] ?? '');
-  } else {}
-}

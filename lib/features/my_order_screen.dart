@@ -42,11 +42,12 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final List<String> statusSteps = [
-  AppLocalizations.of(context)!.restaurantIsMaking,
-  AppLocalizations.of(context)!.driverPickedUp,
-  AppLocalizations.of(context)!.driverArrived,
-  AppLocalizations.of(context)!.completed,
-];
+      AppLocalizations.of(context)!.restaurantIsMaking,
+      AppLocalizations.of(context)!.driverPickedUp,
+      AppLocalizations.of(context)!.driverArrived,
+      AppLocalizations.of(context)!.completed,
+    ];
+
     return Scaffold(
       backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
@@ -58,9 +59,10 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
             Navigator.pushReplacementNamed(context, '/dashboard');
           },
         ),
-        title: Text(AppLocalizations.of(context)!.my_order, style: const TextStyle(color: Colors.black)),
-
-      
+        title: Text(
+          AppLocalizations.of(context)!.my_order,
+          style: const TextStyle(color: Colors.black),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -72,17 +74,22 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-  return Center(child: Text(AppLocalizations.of(context)!.noOrdersFound));
-}
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                  child: Text(AppLocalizations.of(context)!.noOrdersFound));
+            }
+
             final orders = snapshot.data!.docs;
 
             return ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: orders.length,
               itemBuilder: (context, index) {
-                final orderData = orders[index].data() as Map<String, dynamic>;
-                final orderTime = (orderData['createdAt'] as Timestamp?)?.toDate();
+                final orderData =
+                    orders[index].data() as Map<String, dynamic>;
+                final orderTime =
+                    (orderData['createdAt'] as Timestamp?)?.toDate();
                 if (orderTime == null) return const SizedBox();
 
                 final currentStatusIndex = _getStatusIndex(orderTime);
@@ -91,117 +98,165 @@ class _MyOrderScreenState extends State<MyOrderScreen> {
 
                 final List<dynamic> items = [orderData];
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.grey[100]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: InkWell(
-                    onTap: () {
-                   Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => OrderDetailScreen(orderId: orders[index].id),
-  ),
-);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Restaurant name and date
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                orderData['restaurantName'] ?? 'Unknown',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context).push(PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              OrderDetailScreen(orderId: orders[index].id),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            final offsetAnimation = Tween<Offset>(
+                              begin: const Offset(1.0, 0.0),
+                              end: Offset.zero,
+                            ).animate(animation);
+                            return SlideTransition(
+                              position: offsetAnimation,
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
                               ),
-                              Text(
-                                formattedDate,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                            );
+                          },
+                        ));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// Restaurant name + date
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  orderData['restaurantName'] ?? 'Unknown',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
+                                Text(
+                                  formattedDate,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
 
-                          // Order items thumbnails
-                          SizedBox(
-                            height: 60,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: items.map<Widget>((item) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          item['imageUrl'] ?? '',
-                                          height: 40,
-                                          width: 40,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 40),
+                            /// Thumbnails
+                            SizedBox(
+                              height: 60,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: items.map<Widget>((item) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.only(right: 8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.network(
+                                            item['imageUrl'] ?? '',
+                                            height: 40,
+                                            width: 40,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                const Icon(Icons.image,
+                                                    size: 40),
+                                          ),
                                         ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          item['name'] ?? '',
+                                          style:
+                                              const TextStyle(fontSize: 10),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            /// Status Progress
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children:
+                                  statusSteps.asMap().entries.map((entry) {
+                                int stepIndex = entry.key;
+                                String step = entry.value;
+                                bool isCompleted =
+                                    stepIndex <= currentStatusIndex;
+
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        isCompleted
+                                            ? Icons.check_circle
+                                            : Icons.radio_button_unchecked,
+                                        color: isCompleted
+                                            ? AppTheme.accentGreen
+                                            : Colors.grey,
+                                        size: 20,
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        item['name'] ?? '',
-                                        style: const TextStyle(fontSize: 10),
-                                        overflow: TextOverflow.ellipsis,
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          step,
+                                          softWrap: true,
+                                          overflow: TextOverflow.visible,
+                                          style: TextStyle(
+                                            color: isCompleted
+                                                ? Colors.black
+                                                : Colors.grey[600],
+                                            fontWeight: isCompleted
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
                                 );
                               }).toList(),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-
-                          // Progress bar status
-                         Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: statusSteps.asMap().entries.map((entry) {
-    int stepIndex = entry.key;
-    String step = entry.value;
-    bool isCompleted = stepIndex <= currentStatusIndex;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: isCompleted ? AppTheme.accentGreen : Colors.grey,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              step,
-              softWrap: true,
-              overflow: TextOverflow.visible,
-              style: TextStyle(
-                color: isCompleted ? Colors.black : Colors.grey[600],
-                fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }).toList(),
-)
-                        ],
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:food_delivery_app/features/PromotionsSection.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
+import 'package:food_delivery_app/main.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,37 +17,32 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   String? userId;
-  late List<Widget> _pages;
+  String profileImageUrl = '';
+  String? selectedLanguage;
 
   int cartCount = 0;
-
-  bool _isPagesInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    fetchCartCount();
-
     final currentUser = FirebaseAuth.instance.currentUser;
     userId = currentUser?.uid;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (!_isPagesInitialized) {
-      _pages = [
-        DashboardContent(userId: userId),
-        PlaceholderScreen(AppLocalizations.of(context)!.menu),
-        PlaceholderScreen(AppLocalizations.of(context)!.my_order),
-        PlaceholderScreen(AppLocalizations.of(context)!.notifications),
-        PlaceholderScreen(AppLocalizations.of(context)!.profile),
-      ];
-      _isPagesInitialized = true;
+    if (userId != null) {
+      fetchUserProfile();
+      fetchCartCount();
     }
   }
 
+  Future<void> fetchUserProfile() async {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    final data = doc.data();
+    if (data != null) {
+      setState(() {
+        profileImageUrl = data['profileImageUrl'] ?? '';
+        selectedLanguage = data['language'] ?? 'en';
+      });
+    }
+  }
 
   Future<void> fetchCartCount() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -81,10 +79,122 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      body: userId == null
-          ? const Center(child: CircularProgressIndicator())
-          : _pages[_selectedIndex],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Top bar with logo, language dropdown, and avatar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset('assets/aimst_food_hub_logo.png', height: 40),
+                    Row(
+                        mainAxisSize: MainAxisSize.min,  // Let Row be as wide as its content
+
+                      children: [
+                        SizedBox(
+                          width:150,
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.language),
+                              labelText: loc.chooseLanguage,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                            value: selectedLanguage,
+                            items: const [
+                              DropdownMenuItem(value: 'en', child: Text('English')),
+                              DropdownMenuItem(value: 'ms', child: Text('Malay')),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  selectedLanguage = value;
+                                });
+                                MyApp.setLocale(context, Locale(value));
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/profile');
+                          },
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundImage: profileImageUrl.isNotEmpty
+                                ? NetworkImage(profileImageUrl)
+                                : NetworkImage('https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId!)}'),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Grid menu buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  children: [
+                    _DashboardButton(
+                      icon: 'assets/menu.png',
+                      label: loc.menu,
+                      onTap: () => Navigator.pushNamed(context, '/vendors'),
+                    ),
+                    _DashboardButton(
+                      icon: 'assets/order.png',
+                      label: loc.my_order,
+                      onTap: () => Navigator.pushNamed(context, '/myOrder'),
+                    ),
+                    _DashboardButton(
+                      icon: 'assets/notifications.png',
+                      label: loc.notifications,
+                      onTap: () => Navigator.pushNamed(context, '/notifications'),
+                    ),
+                    _DashboardButton(
+                      icon: 'assets/cart.png',
+                      label: loc.cart,
+                      onTap: () => Navigator.pushNamed(context, '/cart'),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Promotions section
+             
+            const PromotionsSection(),
+
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -95,7 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
-            label: AppLocalizations.of(context)!.dashboard,
+            label: loc.dashboard,
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -111,138 +221,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                       child: Text(
                         '$cartCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 10),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   ),
               ],
             ),
-            label: AppLocalizations.of(context)!.cart,
+            label: loc.cart,
           ),
-
           BottomNavigationBarItem(
             icon: const Icon(Icons.shopping_bag),
-            label: AppLocalizations.of(context)!.orders,
+            label: loc.orders,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class DashboardContent extends StatelessWidget {
-  final String? userId;
-  const DashboardContent({super.key, required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Image.asset('assets/aimst_food_hub_logo.png', height: 80),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/profile');
-                    },
-                    child: userId == null
-                        ? const CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey,
-                          )
-                        : CircleAvatar(
-                            radius: 20,
-                            backgroundImage: NetworkImage(
-                              'https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId!)}',
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                children: [
-                  _DashboardButton(
-                    icon: 'assets/menu.png',
-                    label: AppLocalizations.of(context)!.menu,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/vendors');
-                    },
-                  ),
-                  _DashboardButton(
-                    icon: 'assets/order.png',
-                    label: AppLocalizations.of(context)!.my_order,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/myOrder');
-                    },
-                  ),
-                  _DashboardButton(
-                    icon: 'assets/notifications.png',
-                    label: AppLocalizations.of(context)!.notifications,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/notifications');
-                    },
-                  ),
-                  _DashboardButton(
-                    icon: 'assets/cart.png',
-                    label: AppLocalizations.of(context)!.cart,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/cart');
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  AppLocalizations.of(context)!.promotions,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  'assets/promo1.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: 150,
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-          ],
-        ),
       ),
     );
   }
@@ -277,21 +272,6 @@ class _DashboardButton extends StatelessWidget {
             Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const PlaceholderScreen(this.title, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$title Screen',
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
   }

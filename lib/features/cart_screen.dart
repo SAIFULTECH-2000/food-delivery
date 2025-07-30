@@ -18,6 +18,7 @@ class _CartScreenState extends State<CartScreen> {
   String paymentMethod = 'shopeepay'; // 'shopeepay' or 'stripe'
 
   double deliveryFee = 0.0;
+  String restaurantName = 'Unknown Restaurant';
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _CartScreenState extends State<CartScreen> {
 
     setState(() {
       cartItems = cartSnapshot.docs.map((doc) {
+        restaurantName = doc['restaurantName'] ?? 'Unknown Restaurant';
         return {
           'name': doc['name'],
           'price': doc['price'],
@@ -45,9 +47,7 @@ class _CartScreenState extends State<CartScreen> {
         };
       }).toList();
       isLoading = false;
-
-      // Dummy balance check
-      hasSufficientBalance = true; // set false to simulate no balance
+      hasSufficientBalance = true; // simulate balance
     });
   }
 
@@ -94,8 +94,8 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ListTile(
                   leading: const Icon(Icons.storefront, color: Colors.red),
-                  title: const Text('Nasi Lemak Ayam Goreng Crunchy - Dataran Dwitastik'),
-                  subtitle: const Text('No 41, Jln Dwitastik 2 Dataran Dwitastik'),
+                  title: Text(restaurantName),
+                  subtitle: const Text('Pickup Location will be shown here'),
                   trailing: PopupMenuButton<String>(
                     icon: const Icon(Icons.chevron_right),
                     onSelected: updateDeliveryMethod,
@@ -170,15 +170,9 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Payment Options
                       const Text('Payment Method:', style: TextStyle(fontWeight: FontWeight.bold)),
                       Row(
                         children: [
-                          ChoiceChip(
-                            label: const Text('ShopeePay'),
-                            selected: paymentMethod == 'shopeepay',
-                            onSelected: (_) => updatePaymentMethod('shopeepay'),
-                          ),
                           const SizedBox(width: 8),
                           ChoiceChip(
                             label: const Text('Stripe'),
@@ -187,31 +181,15 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                         ],
                       ),
-                      if (paymentMethod == 'shopeepay' && !hasSufficientBalance)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Insufficient ShopeePay balance!',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
                       const SizedBox(height: 20),
 
-                      // Place Order Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: (paymentMethod == 'shopeepay' && !hasSufficientBalance)
                               ? null
                               : () {
-                                  if (paymentMethod == 'stripe') {
-                                    // TODO: Integrate Stripe checkout here
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Stripe Checkout...')),
-                                    );
-                                  } else {
-                                    Navigator.pushNamed(context, '/payment');
-                                  }
+                                  Navigator.pushNamed(context, '/payment');
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.accentGreen,

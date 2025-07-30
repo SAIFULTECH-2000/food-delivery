@@ -81,7 +81,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get dashboard => 'Papan Pemuka';
 
   @override
-  String get cart => 'TROLI';
+  String get cart => 'Troli';
 
   @override
   String get orders => 'Pesanan';
@@ -114,7 +114,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get saveChanges => 'Simpan Perubahan';
 
   @override
-  String get editProfile => 'Edit Profil';
+  String get editProfile => 'Kemaskini Profil';
 
   @override
   String get profileUpdated => 'Profil berjaya dikemaskini';
@@ -234,4 +234,7 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get backToLogin => 'Kembali ke Log Masuk';
+
+  @override
+  String get settings => 'Tetapan';
 }

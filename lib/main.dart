@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:food_delivery_app/data/uploadVendorsAndMenus.dart';
+import 'package:food_delivery_app/features/HelpSupportScreen.dart';
+import 'package:food_delivery_app/features/PaymentMethodScreen.dart';
+import 'package:food_delivery_app/features/RewardsScreen.dart';
+import 'package:food_delivery_app/features/SubscriptionScreen.dart';
+import 'package:food_delivery_app/features/splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
@@ -40,10 +46,11 @@ void main() async {
     debugPrint('Stripe Init Error: $e');
   }
 
-  // Load saved language
+  // Load saved language code
   final prefs = await SharedPreferences.getInstance();
   final langCode = prefs.getString('language') ?? 'en';
-
+    // OPTIONAL: Call this only once for seeding
+ //await uploadVendorsAndMenus();
   runApp(MyApp(startLocale: Locale(langCode)));
 }
 
@@ -51,6 +58,7 @@ class MyApp extends StatefulWidget {
   final Locale startLocale;
   const MyApp({super.key, required this.startLocale});
 
+  // Static method to update locale anywhere with context
   static void setLocale(BuildContext context, Locale newLocale) {
     final state = context.findAncestorStateOfType<_MyAppState>();
     state?.changeLocale(newLocale);
@@ -92,7 +100,7 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      initialRoute: '/info',
+      initialRoute: '/splash',
       routes: {
         '/info': (context) => AimstFoodHubScreen(),
         '/login': (context) => LoginScreen(),
@@ -109,6 +117,11 @@ class _MyAppState extends State<MyApp> {
         '/editProfile': (context) => const EditProfileScreen(),
         '/chat': (context) => const ChatScreen(),
         '/vendors': (context) => const VendorsScreen(),
+        '/rewards': (context) => const RewardsScreen(),
+        '/subscription': (context) => const SubscriptionScreen(),
+        '/support': (context) => const HelpSupportScreen(),
+        '/splash': (context) => const SplashScreen(),
+        '/paymentMethod': (_) => const PaymentMethodScreen(), // Add this
       },
     );
   }

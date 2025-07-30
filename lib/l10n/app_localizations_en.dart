@@ -81,7 +81,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard => 'Dashboard';
 
   @override
-  String get cart => 'CART';
+  String get cart => 'Cart';
 
   @override
   String get orders => 'Orders';
@@ -144,7 +144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestEmail => 'guest@example.com';
 
   @override
-  String get phoneNA => 'N/A';
+  String get phoneNA => 'No Phone';
 
   @override
   String get browseFoods => 'Browse Foods';
@@ -234,4 +234,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backToLogin => 'Back to Login';
+
+  @override
+  String get settings => 'Settings';
 }

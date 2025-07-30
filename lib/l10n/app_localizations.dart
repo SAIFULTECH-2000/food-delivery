@@ -242,7 +242,7 @@ abstract class AppLocalizations {
   /// No description provided for @cart.
   ///
   /// In en, this message translates to:
-  /// **'CART'**
+  /// **'Cart'**
   String get cart;
 
   /// No description provided for @orders.
@@ -368,7 +368,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneNA.
   ///
   /// In en, this message translates to:
-  /// **'N/A'**
+  /// **'No Phone'**
   String get phoneNA;
 
   /// No description provided for @browseFoods.
@@ -544,6 +544,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to Login'**
   String get backToLogin;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,8 +1,11 @@
-// lib/screens/edit_profile_screen.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:food_delivery_app/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -20,6 +23,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   String? selectedLanguage;
   bool isLoading = true;
+  String profileImageUrl = '';
+  File? _pickedImage;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -28,26 +35,79 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    fullNameController.text = prefs.getString('fullName') ?? '';
-    emailController.text = prefs.getString('email') ?? '';
-    phoneController.text = prefs.getString('phone') ?? '';
-    selectedLanguage = prefs.getString('language');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final data = doc.data();
+
+    if (data != null) {
+      fullNameController.text = data['fullName'] ?? '';
+      emailController.text = data['email'] ?? '';
+      phoneController.text = data['phone'] ?? '';
+      selectedLanguage = data['language'];
+      profileImageUrl = data['profileImageUrl'] ?? '';
+    }
+
     setState(() => isLoading = false);
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _pickedImage = File(pickedFile.path);
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final storageRef = FirebaseStorage.instance
+        .ref()
+        .child('profile_images')
+        .child('${user.uid}.jpg');
+
+    await storageRef.putFile(_pickedImage!);
+    final downloadUrl = await storageRef.getDownloadURL();
+
+    setState(() {
+      profileImageUrl = downloadUrl;
+    });
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .update({'profileImageUrl': downloadUrl});
   }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('fullName', fullNameController.text.trim());
-    await prefs.setString('email', emailController.text.trim());
-    await prefs.setString('phone', phoneController.text.trim());
- if (selectedLanguage != null) {
-    await prefs.setString('language', selectedLanguage!);
-    MyApp.setLocale(context, Locale(selectedLanguage!)); // ✅ This is the key
-  }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final userData = {
+      'fullName': fullNameController.text.trim(),
+      'email': emailController.text.trim(),
+      'phone': phoneController.text.trim(),
+      'language': selectedLanguage,
+      'profileImageUrl': profileImageUrl,
+    };
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .set(userData);
+
+    if (selectedLanguage != null) {
+      MyApp.setLocale(context, Locale(selectedLanguage!));
+    }
+
     if (!mounted) return;
+
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)),
@@ -63,9 +123,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/dashboard'),
+          onPressed: () =>
+              Navigator.pushReplacementNamed(context, '/dashboard'),
         ),
-        title: Text(local.editProfile, style: const TextStyle(color: Colors.black)),
+        title:
+            Text(local.editProfile, style: const TextStyle(color: Colors.black)),
         backgroundColor: AppTheme.canvasCream,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -78,38 +140,66 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    Center(
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 60,
+                            backgroundImage: profileImageUrl.isNotEmpty
+                                ? NetworkImage(profileImageUrl)
+                                : const AssetImage(
+                                        'assets/images/avatar_placeholder.png')
+                                    as ImageProvider,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.camera_alt, color: Colors.black),
+                            onPressed: _pickAndUploadImage,
+                          )
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: fullNameController,
-                      decoration: _buildInputDecoration(local.fullName, Icons.person),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? local.enterName : null,
+                      decoration:
+                          _buildInputDecoration(local.fullName, Icons.person),
+                      validator: (value) => value == null || value.isEmpty
+                          ? local.enterName
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: emailController,
-                      decoration: _buildInputDecoration(local.email, Icons.email),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? local.enterEmail : null,
+                      decoration:
+                          _buildInputDecoration(local.email, Icons.email),
+                      validator: (value) => value == null || value.isEmpty
+                          ? local.enterEmail
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: phoneController,
-                      decoration: _buildInputDecoration(local.phone, Icons.phone),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? local.enterPhone : null,
+                      decoration:
+                          _buildInputDecoration(local.phone, Icons.phone),
+                      validator: (value) => value == null || value.isEmpty
+                          ? local.enterPhone
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      decoration: _buildInputDecoration(local.chooseLanguage, Icons.language),
+                      decoration: _buildInputDecoration(
+                          local.chooseLanguage, Icons.language),
                       value: selectedLanguage,
-                      items: [
+                      items: const [
                         DropdownMenuItem(value: 'en', child: Text('English')),
                         DropdownMenuItem(value: 'ms', child: Text('Malay')),
                       ],
-                      onChanged: (value) => setState(() => selectedLanguage = value),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? local.selectLanguage : null,
+                      onChanged: (value) =>
+                          setState(() => selectedLanguage = value),
+                      validator: (value) => value == null || value.isEmpty
+                          ? local.selectLanguage
+                          : null,
                     ),
                     const SizedBox(height: 30),
                     ElevatedButton(
@@ -137,7 +227,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       prefixIcon: Icon(icon),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide.none,
