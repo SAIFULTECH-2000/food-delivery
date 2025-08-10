@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'dart:math';
@@ -14,6 +15,14 @@ class VendorsScreen extends StatefulWidget {
 
 class _VendorsScreenState extends State<VendorsScreen> {
   final Map<String, List<Map<String, dynamic>>> _foodCache = {};
+  int _bottomNavIndex = 0;
+
+  final List<IconData> _navIcons = [
+    Icons.home,
+    Icons.shopping_cart,
+    Icons.favorite,
+    Icons.person,
+  ];
 
   Future<List<Map<String, dynamic>>> fetchRandomFoods(String vendorId) async {
     if (_foodCache.containsKey(vendorId)) {
@@ -28,11 +37,13 @@ class _VendorsScreenState extends State<VendorsScreen> {
 
     final allFoods = foodSnapshot.docs
         .map((doc) => doc.data())
-        .where((data) => data.containsKey('name') && data.containsKey('imageUrl'))
+        .where(
+          (data) => data.containsKey('name') && data.containsKey('imageUrl'),
+        )
         .toList();
 
     allFoods.shuffle(Random());
-    final selectedFoods = allFoods.take(4).toList();
+    final selectedFoods = allFoods.take(5).toList();
     _foodCache[vendorId] = selectedFoods;
     return selectedFoods;
   }
@@ -41,9 +52,44 @@ class _VendorsScreenState extends State<VendorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.availableCafes),
-        backgroundColor: AppTheme.accentGreen,
+        automaticallyImplyLeading: false, // Hides back button
+        backgroundColor: Colors.transparent, // Transparent background
+        elevation: 0, // No shadow
       ),
+      // FAB
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Handle FAB press
+        },
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        child: const Icon(Icons.shopping_bag),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      // Bottom Navigation Bar
+      bottomNavigationBar: AnimatedBottomNavigationBar(
+        icons: _navIcons,
+        activeIndex: -1, // No icon is active
+        gapLocation: GapLocation.center,
+        notchSmoothness: NotchSmoothness.softEdge,
+        backgroundColor: Theme.of(context).cardColor, // Use theme's card color
+        activeColor: Theme.of(context).colorScheme.secondary, // Use accentGreen
+        inactiveColor: Theme.of(context).colorScheme.onSurface.withOpacity(
+          0.6,
+        ), // Use theme's onSurface with opacity
+        leftCornerRadius: 32,
+        rightCornerRadius: 32,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushNamed(context, '/dashboard');
+          } else if (index == 1) {
+            Navigator.pushNamed(context, '/cart');
+          } else if (index == 3) {
+            Navigator.pushNamed(context, '/profile');
+          }
+        },
+      ),
+
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('vendors').snapshots(),
         builder: (context, snapshot) {
@@ -52,9 +98,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text(AppLocalizations.of(context)!.noVendors),
-            );
+            return Center(child: Text(AppLocalizations.of(context)!.noVendors));
           }
 
           final vendors = snapshot.data!.docs;
@@ -62,8 +106,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
           return CardSwiper(
             cardsCount: vendors.length,
             numberOfCardsDisplayed: 3,
-            isLoop: true, // repeat cards after swipe
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+            isLoop: true,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             cardBuilder: (context, index, percentX, percentY) {
               final vendorDoc = vendors[index];
               final vendor = vendorDoc.data() as Map<String, dynamic>;
@@ -74,152 +118,211 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 builder: (context, foodSnapshot) {
                   final foodItems = foodSnapshot.data ?? [];
 
-                  return Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                          child: vendor['logoUrl'] != null &&
-                                  vendor['logoUrl'].toString().isNotEmpty
-                              ? Image.network(
-                                  vendor['logoUrl'],
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.broken_image, size: 100),
-                                )
-                              : Container(
-                                  height: 180,
-                                  width: double.infinity,
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.store, size: 100),
-                                ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                vendor['name'] ??
-                                    AppLocalizations.of(context)!.unnamedVendor,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: List.generate(
-                                  5,
-                                  (index) => const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on,
-                                      size: 16, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      vendor['address'] ?? '',
-                                      style: const TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time,
-                                      size: 16, color: Colors.grey),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${vendor['openTime'] ?? 'N/A'} - ${vendor['closeTime'] ?? 'N/A'}',
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                "Menu",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              foodSnapshot.connectionState == ConnectionState.waiting
-                                  ? const CircularProgressIndicator()
-                                  : foodItems.isEmpty
-                                      ? const Text("No menu items.")
-                                      : Column(
-                                          children: foodItems.map((food) {
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(vertical: 6),
-                                              child: Row(
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(8),
-                                                    child: Image.network(
-                                                      food['imageUrl'] ?? '',
-                                                      height: 40,
-                                                      width: 40,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (_, __, ___) =>
-                                                          const Icon(Icons.fastfood),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      food['name'] ?? 'Unnamed',
-                                                      style: const TextStyle(
-                                                          fontSize: 14),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                              const SizedBox(height: 16),
-                              Center(
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/menu',
-                                      arguments: vendor['ownerUid'],
-                                    );
-                                  },
-                                  icon: const Icon(Icons.arrow_forward),
-                                  label: const Text("View"),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.accentGreen,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      color: Theme.of(
+                        context,
+                      ).cardColor, // Use theme's card color
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            children: [
+                              Image.network(
+                                vendor['logoUrl'] ?? '',
+                                height: 180,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 180,
+                                  color: Colors.white,
+                                ), // Use theme's divider color
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.6),
+                                      ],
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  child: Text(
+                                    vendor['name'] ?? 'Vendor',
+                                    style: TextStyle(
+                                      color: AppTheme.accentGreen,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.6),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        vendor['address'] ?? '',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.6),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${vendor['openTime'] ?? 'N/A'} - ${vendor['closeTime'] ?? 'N/A'}',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "Menu Preview",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  height: 60,
+                                  child:
+                                      foodSnapshot.connectionState ==
+                                          ConnectionState.waiting
+                                      ? const Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                      : foodItems.isEmpty
+                                      ? const Center(child: Text("No items"))
+                                      : ListView.separated(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: foodItems.length,
+                                          itemBuilder: (context, idx) {
+                                            final food = foodItems[idx];
+                                            return Column(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Image.network(
+                                                    food['imageUrl'] ?? '',
+                                                    height: 40,
+                                                    width: 40,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder:
+                                                        (_, __, ___) =>
+                                                            const Icon(
+                                                              Icons.fastfood,
+                                                            ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  food['name'] ?? '',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.onSurface,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                          separatorBuilder: (_, __) =>
+                                              const SizedBox(width: 8),
+                                        ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/menu',
+                                        arguments: vendor['ownerUid'],
+                                      );
+                                    },
+                                    icon: const Icon(Icons.arrow_forward),
+                                    label: const Text("View Menu"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.accentGreen,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

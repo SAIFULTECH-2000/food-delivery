@@ -1,241 +1,442 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:food_delivery_app/core/theme/app_theme.dart';
-import 'package:food_delivery_app/features/PromotionsSection.dart';
-import 'package:food_delivery_app/l10n/app_localizations.dart';
+import 'package:food_delivery_app/features/FoodSwiperScreen.dart';
+import 'package:food_delivery_app/features/VendorsScreen.dart';
+import 'package:food_delivery_app/features/cart_screen.dart';
 import 'package:food_delivery_app/main.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'search_result_screen.dart'; // Import the new screen
+import 'package:food_delivery_app/l10n/app_localizations.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class ModernHomeScreen extends StatefulWidget {
+  const ModernHomeScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<ModernHomeScreen> createState() => _ModernHomeScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-  String? userId;
-  String profileImageUrl = '';
-  String? selectedLanguage;
-
-  int cartCount = 0;
+class _ModernHomeScreenState extends State<ModernHomeScreen> {
+  int _bottomNavIndex = 0;
+  String selectedLocation = 'Library Building';
+  String selectedLanguage = 'EN';
 
   @override
   void initState() {
     super.initState();
-    final currentUser = FirebaseAuth.instance.currentUser;
-    userId = currentUser?.uid;
-    if (userId != null) {
-      fetchUserProfile();
-      fetchCartCount();
-    }
+    _loadPreferences();
   }
 
-  Future<void> fetchUserProfile() async {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    final data = doc.data();
-    if (data != null) {
-      setState(() {
-        profileImageUrl = data['profileImageUrl'] ?? '';
-        selectedLanguage = data['language'] ?? 'en';
-      });
-    }
-  }
-
-  Future<void> fetchCartCount() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    final cartSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('cart')
-        .get();
-
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      cartCount = cartSnapshot.docs.length;
+      selectedLanguage = prefs.getString('language') ?? 'EN';
+      selectedLocation = prefs.getString('location') ?? 'Library Building';
     });
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  final userId = FirebaseAuth.instance.currentUser!.uid;
 
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/dashboard');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/cart');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/notifications');
-        break;
-    }
+  final Map<String, List<Map<String, String>>> localizedOffers = {
+    'EN': [
+      {'percent': '30%', 'text': 'Discount only\nvalid for today!'},
+      {'percent': 'Buy 1', 'text': 'Get 1 Free\nOn all snacks!'},
+      {'percent': '20%', 'text': 'Off for new\nbreakfast items!'},
+    ],
+    'MS': [
+      {'percent': '30%', 'text': 'Diskaun hanya\nsah untuk hari ini!'},
+      {'percent': 'Beli 1', 'text': 'Dapat 1 Percuma\nUntuk semua snek!'},
+      {'percent': '20%', 'text': 'Diskaun untuk\nmenu sarapan baru!'},
+    ],
+  };
+  final Map<String, Map<String, String>> categoryLabels = {
+    'EN': {
+      'Local': 'Local',
+      'Breakfast': 'Breakfast',
+      'Snacks': 'Snacks',
+      'Drinks': 'Drinks',
+    },
+    'MS': {
+      'Local': 'Tempatan',
+      'Breakfast': 'Sarapan',
+      'Snacks': 'Snek',
+      'Drinks': 'Minuman',
+    },
+  };
+  final iconList = <IconData>[
+    Icons.home,
+    Icons.shopping_cart,
+    Icons.favorite,
+    Icons.person,
+  ];
+  void _openSwiper(BuildContext context, String category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FoodSwiperScreen(category: category),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-
-    if (userId == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top bar with logo, language dropdown, and avatar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset('assets/aimst_food_hub_logo.png', height: 40),
-                    Row(
-                        mainAxisSize: MainAxisSize.min,  // Let Row be as wide as its content
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      DropdownButton<String>(
+                        value: selectedLocation,
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) async {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedLocation = newValue;
+                            });
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString(
+                              'selectedLocation',
+                              selectedLocation,
+                            );
+                          }
+                        },
+                        items:
+                            <String>[
+                              'Library Building',
+                              'Medical Building',
+                              'Dental Building',
+                              'Cafeteria Building',
+                              'Anggerik Hostel',
+                              'Bunga Raya Hostel',
+                              'Teratai Hostel',
+                              'Keriang Hostel',
+                              'Jerai Hostel',
+                              'Sports Complex',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      DropdownButton<String>(
+                        value: selectedLanguage,
+                        underline: const SizedBox(),
+                        icon: const Icon(Icons.language),
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        dropdownColor: Theme.of(
+                          context,
+                        ).scaffoldBackgroundColor,
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedLanguage = newValue;
+                            });
 
-                      children: [
-                        SizedBox(
-                          width:150,
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.language),
-                              labelText: loc.chooseLanguage,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                            // 🌐 Set locale here
+                            Locale locale = newValue == 'EN'
+                                ? const Locale('en')
+                                : const Locale('ms');
+                            MyApp.setLocale(context, locale);
+                          }
+                        },
+                        items: <String>['EN', 'MS'].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value == 'EN' ? '🇬🇧 EN' : '🇲🇾 MS'),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(width: 16),
+                      const ProfileAvatar(),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Search bar with submit
+              TextField(
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.craving_question,
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                textInputAction: TextInputAction.search,
+                onSubmitted: (value) {
+                  if (value.trim().isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SearchResultScreen(query: value.trim()),
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+
+              // Special Offers
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.specialOffer,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.seeall,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 120,
+                child: PageView.builder(
+                  controller: PageController(viewportFraction: 0.9),
+                  itemCount: (localizedOffers[selectedLanguage] ?? []).length,
+                  itemBuilder: (context, index) {
+                    final offers = localizedOffers[selectedLanguage] ?? [];
+                    final promo = offers[index];
+                    final percent = promo['percent'] ?? '';
+                    final text = promo['text'] ?? '';
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondary.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    percent,
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    text,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),
-                            value: selectedLanguage,
-                            items: const [
-                              DropdownMenuItem(value: 'en', child: Text('English')),
-                              DropdownMenuItem(value: 'ms', child: Text('Malay')),
-                            ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  selectedLanguage = value;
-                                });
-                                MyApp.setLocale(context, Locale(value));
-                              }
-                            },
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 5),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(context, '/profile');
-                          },
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundImage: profileImageUrl.isNotEmpty
-                                ? NetworkImage(profileImageUrl)
-                                : NetworkImage('https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId!)}'),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
+                      ),
+                    );
+                  },
                 ),
               ),
+              const SizedBox(height: 24),
 
-              const SizedBox(height: 10),
+              // Categories
+              GridView.count(
+                crossAxisCount: 4,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                children: [
+                  CategoryItem(
+                    icon: Icons.restaurant,
+                    label: categoryLabels[selectedLanguage]!['Local']!,
+                    onTap: () => _openSwiper(context, 'Local'),
+                  ),
 
-              // Grid menu buttons
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 20,
-                  crossAxisSpacing: 20,
+                  CategoryItem(
+                    icon: Icons.free_breakfast,
+                    label: categoryLabels[selectedLanguage]!['Breakfast']!,
+                    onTap: () => _openSwiper(context, 'Breakfast'),
+                  ),
+
+                  CategoryItem(
+                    icon: Icons.fastfood,
+                    label: categoryLabels[selectedLanguage]!['Snacks']!,
+                    onTap: () => _openSwiper(context, 'Snacks'),
+                  ),
+
+                  CategoryItem(
+                    icon: Icons.local_drink,
+                    label: categoryLabels[selectedLanguage]!['Drinks']!,
+                    onTap: () => _openSwiper(context, 'Drinks'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Discount Guaranteed
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.discountGuaranteed,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.seeall,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: PageView(
                   children: [
-                    _DashboardButton(
-                      icon: 'assets/menu.png',
-                      label: loc.menu,
-                      onTap: () => Navigator.pushNamed(context, '/vendors'),
-                    ),
-                    _DashboardButton(
-                      icon: 'assets/order.png',
-                      label: loc.my_order,
-                      onTap: () => Navigator.pushNamed(context, '/myOrder'),
-                    ),
-                    _DashboardButton(
-                      icon: 'assets/notifications.png',
-                      label: loc.notifications,
-                      onTap: () => Navigator.pushNamed(context, '/notifications'),
-                    ),
-                    _DashboardButton(
-                      icon: 'assets/cart.png',
-                      label: loc.cart,
-                      onTap: () => Navigator.pushNamed(context, '/cart'),
-                    ),
+                    Image.asset('assets/promo1.png', fit: BoxFit.cover),
+                    Image.asset('assets/promo2.jpg', fit: BoxFit.cover),
+                    Image.asset('assets/promo3.png', fit: BoxFit.cover),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 30),
-
-              // Promotions section
-             
-            const PromotionsSection(),
-
-              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: loc.dashboard,
+      // FAB
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VendorsScreen()),
+          );
+        },
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        child: const Icon(Icons.shopping_bag),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 6.0,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildTabIcon(Icons.home, 0),
+              CartIconWithBadge(
+                userId: userId,
+                isActive: _bottomNavIndex == 1,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartScreen()),
+                  );
+                  setState(() => _bottomNavIndex = 0);
+                },
+              ),
+              const SizedBox(width: 48), // space for FAB
+              _buildTabIcon(Icons.favorite, 2),
+              _buildTabIcon(Icons.person, 3),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Stack(
-              children: [
-                const Icon(Icons.shopping_cart),
-                if (cartCount > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: Text(
-                        '$cartCount',
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            label: loc.cart,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabIcon(IconData icon, int index) {
+    return IconButton(
+      icon: Icon(
+        icon,
+        color: _bottomNavIndex == index
+            ? Theme.of(context).colorScheme.secondary
+            : Colors.grey,
+      ),
+      onPressed: () => setState(() => _bottomNavIndex = index),
+    );
+  }
+}
+
+class CategoryItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const CategoryItem({
+    Key? key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 26,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.secondary.withOpacity(0.1),
+            child: Icon(icon, color: Theme.of(context).colorScheme.secondary),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.shopping_bag),
-            label: loc.orders,
+          const SizedBox(height: 6),
+          Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 10),
           ),
         ],
       ),
@@ -243,36 +444,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _DashboardButton extends StatelessWidget {
-  final String icon;
-  final String label;
-  final VoidCallback onTap;
+class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({super.key});
 
-  const _DashboardButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  Future<String?> getProfileImageUrl() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+    return doc.data()?['profileImageUrl'] as String?;
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.black54),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(icon, height: 60),
-            const SizedBox(height: 10),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
+      onTap: () {
+        Navigator.pushNamed(context, '/profile'); // Adjust the route if needed
+      },
+      child: FutureBuilder<String?>(
+        future: getProfileImageUrl(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircleAvatar(
+              radius: 16,
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.5),
+            );
+          }
+          final imageUrl = snapshot.data;
+          return CircleAvatar(
+            radius: 16,
+            backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                ? NetworkImage(imageUrl)
+                : const AssetImage('assets/images/default_avatar.png')
+                      as ImageProvider,
+          );
+        },
       ),
+    );
+  }
+}
+
+class CartIconWithBadge extends StatelessWidget {
+  final String userId;
+  final VoidCallback onTap;
+  final bool isActive;
+
+  const CartIconWithBadge({
+    super.key,
+    required this.userId,
+    required this.onTap,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('cart')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final count = snapshot.data?.docs.length ?? 0;
+
+        return InkWell(
+          onTap: onTap,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.shopping_cart,
+                color: isActive
+                    ? Theme.of(context).colorScheme.secondary
+                    : Colors.grey,
+              ),
+              if (count > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$count',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

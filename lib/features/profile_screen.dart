@@ -8,13 +8,13 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  ProfileScreenState createState() => ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   String fullName = '';
   String email = '';
-  String phone = '';
+  String address = '';
   String profileImageUrl = '';
   String? userId;
   bool isLoading = true;
@@ -36,21 +36,20 @@ class ProfileScreenState extends State<ProfileScreen> {
         .doc(userId)
         .get();
     final data = doc.data();
-    final loc = AppLocalizations.of(context)!;
 
     if (data != null) {
       setState(() {
-        fullName = data['fullName'] ?? loc.guestUser;
-        email = data['email'] ?? loc.guestEmail;
-        phone = data['phone'] ?? loc.phoneNA;
+        fullName = data['fullName'] ?? 'Guest';
+        email = data['email'] ?? 'guest@email.com';
+        address = data['address'] ?? 'Unknown address';
         profileImageUrl = data['profileImageUrl'] ?? '';
         isLoading = false;
       });
     } else {
       setState(() {
-        fullName = loc.guestUser;
-        email = loc.guestEmail;
-        phone = loc.phoneNA;
+        fullName = 'Guest';
+        email = 'guest@email.com';
+        address = 'Unknown address';
         profileImageUrl = '';
         isLoading = false;
       });
@@ -75,167 +74,144 @@ class ProfileScreenState extends State<ProfileScreen> {
         'https://api.dicebear.com/9.x/pixel-art/png?seed=${Uri.encodeComponent(userId ?? fullName)}';
 
     return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
       appBar: AppBar(
-        backgroundColor: AppTheme.canvasCream,
         elevation: 0,
-        title: Text(loc.appName, style: const TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(
+          color: AppTheme.accentGreen,
+        ), // <-- sets back icon color
+        backgroundColor: Theme.of(
+          context,
+        ).cardColor, // <-- use backgroundColor here
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: loc.logoutTooltip,
-            onPressed: _logout,
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/editProfile');
+            },
+            color: AppTheme.accentGreen,
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 60,
-                backgroundImage: profileImageUrl.isNotEmpty
-                    ? NetworkImage(profileImageUrl)
-                    : NetworkImage(avatarUrl),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                fullName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.accentGreen,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                email,
-                style: TextStyle(color: Colors.grey[700], fontSize: 16),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                phone,
-                style: TextStyle(color: Colors.grey[700], fontSize: 16),
-              ),
-              const SizedBox(height: 40),
 
-              // Order History
-              ElevatedButton.icon(
-                icon: const Icon(Icons.history),
-                label: Text(loc.orderHistory),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentGreen,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(50),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            // Profile section
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: profileImageUrl.isNotEmpty
+                  ? NetworkImage(profileImageUrl)
+                  : NetworkImage(avatarUrl),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              fullName,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              address,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 20),
+
+            // First Group
+            _buildCard([
+              _buildTile(Icons.credit_card, "Payments Methods", () {
+                Navigator.pushNamed(context, '/paymentMethod');
+              }),
+              _buildTile(Icons.favorite, "Favorite Order", () {
+                Navigator.pushNamed(context, '/favorite');
+              }),
+            ]),
+
+            const SizedBox(height: 10),
+
+            // Second Group
+            _buildCard([
+              _buildTile(Icons.list_alt, "My Order", () {
+                Navigator.pushNamed(context, '/myOrder');
+              }),
+              _buildTile(Icons.settings, "Settings", () {
+                Navigator.pushNamed(context, '/editProfile');
+              }),
+              _buildTile(Icons.notifications, "Notification", () {
+                Navigator.pushNamed(context, '/notifications');
+              }),
+            ]),
+
+            const SizedBox(height: 20),
+
+            // Logout Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.logout),
+                label: const Text("Log Out"),
+                onPressed: _logout,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: () =>
-                    Navigator.of(context).pushNamed('/orderHistory'),
               ),
-              const SizedBox(height: 20),
-
-              // Settings
-              ElevatedButton.icon(
-                icon: const Icon(Icons.settings),
-                label: Text(
-                  loc.settings,
-                ), // Add 'settings' to your localization
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentGreen,
-                  side: const BorderSide(color: AppTheme.accentGreen),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () =>
-                    Navigator.of(context).pushNamed('/editProfile'),
-              ),
-              const SizedBox(height: 20),
-
-              // Rewards Member Points
-              ElevatedButton.icon(
-                icon: const Icon(Icons.card_giftcard),
-                label: const Text("Rewards Member Points"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentGreen,
-                  side: const BorderSide(color: AppTheme.accentGreen),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/rewards');
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Subscription
-              ElevatedButton.icon(
-                icon: const Icon(Icons.subscriptions),
-                label: const Text("Subscription"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentGreen,
-                  side: const BorderSide(color: AppTheme.accentGreen),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/subscription');
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Help / Contact Support
-              ElevatedButton.icon(
-                icon: const Icon(Icons.support_agent),
-                label: const Text("Help / Contact Support"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentGreen,
-                  side: const BorderSide(color: AppTheme.accentGreen),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/support');
-                },
-              ),
-              const SizedBox(height: 20),
-
-              ElevatedButton.icon(
-                icon: const Icon(Icons.credit_card),
-                label: const Text("Payment Method"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentGreen,
-                  side: const BorderSide(color: AppTheme.accentGreen),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/paymentMethod');
-                },
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
+
+      // Bottom Navigation
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 3,
+        onTap: (index) {
+          if (index == 0) Navigator.pushNamed(context, '/home');
+          if (index == 1) Navigator.pushNamed(context, '/favorite');
+          if (index == 2) Navigator.pushNamed(context, '/cart');
+          // 3 is profile
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favourite',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildTile(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title, style: const TextStyle(fontSize: 16)),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
     );
   }
 }

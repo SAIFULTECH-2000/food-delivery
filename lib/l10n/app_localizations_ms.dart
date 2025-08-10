@@ -9,7 +9,7 @@ class AppLocalizationsMs extends AppLocalizations {
   AppLocalizationsMs([String locale = 'ms']) : super(locale);
 
   @override
-  String get appName => 'Aplikasi Penghantaran Makanan';
+  String get appName => 'AIMST Food Hub';
 
   @override
   String get signIn => 'LOG MASUK';
@@ -27,7 +27,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get username => 'Nama Pengguna';
 
   @override
-  String get email => 'E-mel';
+  String get email => 'Emel';
 
   @override
   String get password => 'Kata Laluan (NDP)';
@@ -237,4 +237,49 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get settings => 'Tetapan';
+
+  @override
+  String get searchRestaurantsOrDishes => 'Cari restoran atau hidangan...';
+
+  @override
+  String get noResultsFound => 'Tiada hasil ditemui.';
+
+  @override
+  String get signInWithGoogle => 'Log masuk dengan Google';
+
+  @override
+  String get darkMode => 'Mod Gelap';
+
+  @override
+  String get loginSuccessful => 'Log Masuk Berjaya';
+
+  @override
+  String get welcomeBackExploreMeals => 'Selamat kembali! Mari terokai beberapa hidangan.';
+
+  @override
+  String get loginError => 'Ralat Log Masuk';
+
+  @override
+  String get unknownErrorOccurred => 'Ralat tidak diketahui berlaku.';
+
+  @override
+  String get someDetailsMayBeWrong => 'Beberapa butiran mungkin salah.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get copyrightAimstUniversity => '© UNIVERSITI AIMST';
+
+  @override
+  String get seeall => 'Semua';
+
+  @override
+  String get specialOffer => 'Tawaran Istimewa';
+
+  @override
+  String get craving_question => 'Apa yang anda idamkan?';
+
+  @override
+  String get discountGuaranteed => 'Diskaun Dijamin! 👌';
 }

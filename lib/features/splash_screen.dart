@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
@@ -23,16 +24,24 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     });
 
-    // Navigate to main info screen after 2.5 seconds
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/info');
+    // Navigate based on auth state after 2.5 seconds
+    Timer(const Duration(seconds: 3), () async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/dashboard',
+        ); // user is logged in
+      } else {
+        Navigator.pushReplacementNamed(context, '/info'); // user not logged in
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:  AppTheme.accentGreen, // splash background
+      backgroundColor: AppTheme.accentGreen, // splash background
       body: Center(
         child: AnimatedOpacity(
           duration: const Duration(seconds: 2),

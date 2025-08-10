@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:food_delivery_app/core/theme/theme_notifier.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:food_delivery_app/main.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -119,18 +121,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final local = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).appBarTheme.iconTheme?.color),
           onPressed: () =>
               Navigator.pushReplacementNamed(context, '/dashboard'),
         ),
         title:
-            Text(local.editProfile, style: const TextStyle(color: Colors.black)),
-        backgroundColor: AppTheme.canvasCream,
+            Text(local.editProfile, style: TextStyle(color: Theme.of(context).appBarTheme.titleTextStyle?.color)),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Theme.of(context).appBarTheme.iconTheme?.color),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -153,7 +155,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     as ImageProvider,
                           ),
                           IconButton(
-                            icon: const Icon(Icons.camera_alt, color: Colors.black),
+                            icon: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.onSurface),
                             onPressed: _pickAndUploadImage,
                           )
                         ],
@@ -201,6 +203,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ? local.selectLanguage
                           : null,
                     ),
+                    const SizedBox(height: 16),
+                    Consumer<ThemeNotifier>(
+                      builder: (context, notifier, child) => SwitchListTile(
+                        title: Text(local.darkMode),
+                        value: notifier.darkTheme,
+                        onChanged: (val) {
+                          notifier.toggleTheme();
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: _saveProfile,
@@ -226,7 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       labelText: label,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Theme.of(context).inputDecorationTheme.fillColor,
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
@@ -236,3 +248,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+

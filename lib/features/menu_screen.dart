@@ -75,9 +75,9 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
           'category': data['category'],
           'calories': data['calories'] ?? '90',
           'restaurantName': vendorName,
-          'kcal':data['kcal'],
-          'minToServe':data['minToServe'],
-          'ingredients':data['ingredients'],
+          'kcal': data['kcal'],
+          'minToServe': data['minToServe'],
+          'ingredients': data['ingredients'],
         });
       }
     } catch (e) {
@@ -91,10 +91,10 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
     return allFoods.where((item) {
       final matchesCategory =
           selectedCategory == 'All' || item['category'] == selectedCategory;
-      final matchesSearch = item['name']
-              ?.toString()
-              .toLowerCase()
-              .contains(searchController.text.toLowerCase()) ??
+      final matchesSearch =
+          item['name']?.toString().toLowerCase().contains(
+            searchController.text.toLowerCase(),
+          ) ??
           false;
       return matchesCategory && matchesSearch;
     }).toList();
@@ -136,17 +136,20 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.canvasCream,
+        backgroundColor: Theme.of(context).colorScheme.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           loc.browseFoods,
-          style: const TextStyle(color: Colors.black),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
       body: Column(
@@ -159,7 +162,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                 hintText: loc.search,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
@@ -200,15 +203,18 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     children: filteredItems.map((item) {
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
                             PageRouteBuilder(
-                              transitionDuration:
-                                  const Duration(milliseconds: 400),
+                              transitionDuration: const Duration(
+                                milliseconds: 400,
+                              ),
                               pageBuilder: (_, __, ___) =>
                                   FoodDetailScreen(foodItem: item),
                               transitionsBuilder: (_, animation, __, child) {
@@ -225,7 +231,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: const [
                               BoxShadow(
@@ -240,7 +246,8 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(20)),
+                                  top: Radius.circular(20),
+                                ),
                                 child: Image.network(
                                   item['imageUrl'] ?? '',
                                   height: 100,
@@ -252,17 +259,20 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                               ),
                               const SizedBox(height: 4),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       item['name'] ?? '',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
-                                        color: Colors.red,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -270,8 +280,13 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       '${item['minToServe']} Min   ${item['kcal']} kcal',
-                                      style: const TextStyle(
-                                          fontSize: 12, color: Colors.grey),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                   ],
@@ -289,65 +304,14 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.accentGreen,
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loc.openingChatSupport)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(loc.openingChatSupport)));
           Future.delayed(const Duration(milliseconds: 500), () {
             Navigator.pushNamed(context, '/chat');
           });
         },
         child: const Icon(Icons.chat, color: Colors.white),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onBottomNavTap,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: loc.dashboard,
-          ),
-         
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.shopping_bag),
-            label: loc.orders,
-          ),
-           BottomNavigationBarItem(
-            icon: Stack(
-              children: [
-                const Icon(Icons.shopping_cart),
-                if (cartCount > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        '$cartCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            label: loc.cart,
-          ),
-        ],
       ),
     );
   }

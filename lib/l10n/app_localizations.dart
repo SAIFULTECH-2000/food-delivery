@@ -98,7 +98,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'Food Delivery App'**
+  /// **'AIMST Food Hub'**
   String get appName;
 
   /// No description provided for @signIn.
@@ -368,7 +368,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneNA.
   ///
   /// In en, this message translates to:
-  /// **'No Phone'**
+  /// **'N/A'**
   String get phoneNA;
 
   /// No description provided for @browseFoods.
@@ -550,6 +550,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @searchRestaurantsOrDishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search restaurants or dishes...'**
+  String get searchRestaurantsOrDishes;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found.'**
+  String get noResultsFound;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get signInWithGoogle;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get darkMode;
+
+  /// No description provided for @loginSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Successful'**
+  String get loginSuccessful;
+
+  /// No description provided for @welcomeBackExploreMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back! Let’s explore some meals.'**
+  String get welcomeBackExploreMeals;
+
+  /// No description provided for @loginError.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Error'**
+  String get loginError;
+
+  /// No description provided for @unknownErrorOccurred.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred.'**
+  String get unknownErrorOccurred;
+
+  /// No description provided for @someDetailsMayBeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Some details may be wrong.'**
+  String get someDetailsMayBeWrong;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @copyrightAimstUniversity.
+  ///
+  /// In en, this message translates to:
+  /// **'© AIMST UNIVERSITY'**
+  String get copyrightAimstUniversity;
+
+  /// No description provided for @seeall.
+  ///
+  /// In en, this message translates to:
+  /// **'See All'**
+  String get seeall;
+
+  /// No description provided for @specialOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Offer'**
+  String get specialOffer;
+
+  /// No description provided for @craving_question.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you craving?'**
+  String get craving_question;
+
+  /// No description provided for @discountGuaranteed.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount Guaranteed! 👌'**
+  String get discountGuaranteed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

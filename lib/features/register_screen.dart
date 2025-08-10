@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Center(
@@ -211,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Already have an account?"),
+                          Text("Already have an account?", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/login');

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // for formatting dates
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -21,7 +22,10 @@ class OrderDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Order Details', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Order Details',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+        ),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
@@ -35,7 +39,9 @@ class OrderDetailScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Order not found.'));
+            return const Center(
+              child: Text('Order not found.', style: TextStyle(fontSize: 16)),
+            );
           }
 
           final orderData = snapshot.data!.data() as Map<String, dynamic>;
@@ -43,75 +49,158 @@ class OrderDetailScreen extends StatelessWidget {
           final int currentStep = _getStatusIndex(orderTime);
           final String gifUrl = _getGifByStatus(currentStep);
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Order ID: $orderId',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Progress Tracker
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildStep('Restaurant is making your order', 0, currentStep),
-                    _buildStep('Driver picked up food', 1, currentStep),
-                    _buildStep('Driver arrived at your home', 2, currentStep),
-                    _buildStep('Enjoy your meal!', 3, currentStep),
+                    Text(
+                      'Order ID: ${orderId.length > 4 ? orderId.substring(orderId.length - 4) : orderId}',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.chat_bubble_outline,
+                        color: Colors.green,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        // Your chat action here
+                        print('Chat icon tapped');
+                      },
+                      tooltip: 'Chat with Restaurant',
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: (currentStep + 1) / 4,
-                  color: AppTheme.accentGreen,
-                  backgroundColor: Colors.grey[300],
-                ),
-                const SizedBox(height: 20),
 
-                // Status GIF
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.network(
-                    gifUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, size: 50)),
+                const SizedBox(height: 6),
+                Text(
+                  'Ordered on ${DateFormat.yMMMMd().add_jm().format(orderTime)}',
+                  style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Progress Tracker - Custom horizontal stepper with lines
+                _buildProgressTracker(currentStep),
+
+                const SizedBox(height: 30),
+
+                // Status GIF with shadow & rounded corners
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                const Text(
-                  'ORDER HISTORY',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 10),
-
-                Card(
-                  child: ListTile(
-                    leading: Image.network(
-                      orderData['imageUrl'] ?? '',
-                      height: 50,
-                      width: 50,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.network(
+                      gifUrl,
+                      height: 180,
+                      width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.image),
-                    ),
-                    title: Text(orderData['name'] ?? ''),
-                    subtitle: Text('${orderData['quantity']} time'),
-                    trailing: TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${orderData['name']} reordered')),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          height: 180,
+                          child: Center(child: CircularProgressIndicator()),
                         );
                       },
-                      child: const Text('Reorder'),
+                      errorBuilder: (_, __, ___) => const SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                const Text(
+                  'Order History',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+
+                const SizedBox(height: 12),
+
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: FadeInImage.assetNetwork(
+                          placeholder:
+                              'assets/images/placeholder.png', // add a placeholder asset
+                          image: orderData['imageUrl'] ?? '',
+                          height: 60,
+                          width: 60,
+                          fit: BoxFit.cover,
+                          imageErrorBuilder: (_, __, ___) => const Icon(
+                            Icons.image,
+                            size: 60,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        orderData['name'] ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text('${orderData['quantity']} x'),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${orderData['name']} reordered'),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Reorder',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -132,26 +221,54 @@ class OrderDetailScreen extends StatelessWidget {
     return 3;
   }
 
-  Widget _buildStep(String title, int step, int currentStep) {
-    bool isCompleted = step <= currentStep;
+  Widget _buildProgressTracker(int currentStep) {
+    final steps = [
+      'Restaurant is\nmaking your order',
+      'Driver picked\nup food',
+      'Driver arrived\nat your home',
+      'Enjoy\nyour meal!',
+    ];
 
-    return Column(
-      children: [
-        Icon(
-          isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isCompleted ? AppTheme.accentGreen : Colors.grey,
-          size: 20,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 10,
-            color: isCompleted ? Colors.black : Colors.grey,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(steps.length * 2 - 1, (index) {
+        if (index.isEven) {
+          final stepIndex = index ~/ 2;
+          final isCompleted = stepIndex <= currentStep;
+          return Column(
+            children: [
+              Icon(
+                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: isCompleted ? AppTheme.accentGreen : Colors.grey,
+                size: 24,
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: 60,
+                child: Text(
+                  steps[stepIndex],
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isCompleted ? Colors.black : Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          );
+        } else {
+          // Connecting line between steps
+          final lineActive = (index ~/ 2) < currentStep;
+          return Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+              height: 4,
+              color: lineActive ? AppTheme.accentGreen : Colors.grey[300],
+            ),
+          );
+        }
+      }),
     );
   }
 

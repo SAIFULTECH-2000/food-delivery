@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -11,7 +12,8 @@ Future<void> uploadVendorsAndMenus() async {
         'email': 'kopitiam@example.com',
         'phone': '0123456781',
         'address': 'Student Centre, AIMST',
-        'logoUrl': 'https://www.businesstoday.com.my/wp-content/uploads/2025/01/oriental-kopi-outlet.jpg',
+        'logoUrl':
+            'https://www.businesstoday.com.my/wp-content/uploads/2025/01/oriental-kopi-outlet.jpg',
         'ownerUid': 'kopitiam-uid',
         'openDays': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         'openTime': '07:30',
@@ -21,30 +23,36 @@ Future<void> uploadVendorsAndMenus() async {
       'foods': [
         {
           "name": "Nasi Lemak",
-          "description": "Fragrant rice with sambal, egg, and anchovies",
+          "description":
+              "A classic Malaysian dish featuring fragrant coconut rice, spicy sambal, crispy anchovies, roasted peanuts, a hard-boiled egg, and refreshing cucumber slices. A harmonious blend of flavors and textures.",
           "price": 5.0,
           "imageUrl":
               "https://www.andy-cooks.com/cdn/shop/articles/20231116072724-c2-a9andy_cooks_thumbnails_nasi_lemak_01.jpg?v=1700389619",
           "category": "Local",
-          "ingredients": [
+          "mainIngredients": [
             {"name": "Egg", "icon": "egg_alt"},
             {"name": "Scallion", "icon": "grass"},
           ],
+          "relatedIngredients": [],
           "kcal": 421,
           "minToServe": 9,
+          "isTopMenu": true,
         },
         {
           "name": "Roti Bakar",
-          "description": "Grilled bread with kaya and butter",
+          "description":
+              "A popular Malaysian breakfast, Roti Bakar features perfectly grilled bread slices, generously spread with sweet kaya (coconut jam) and a slab of cold butter, offering a delightful contrast of textures and flavors.",
           "price": 3.0,
           "imageUrl":
               "https://wiratech.co.id/wp-content/uploads/2018/03/peluang-bisnis-roti-bakar-dan-analisa-usahanya-pengusaha-sukses.jpg",
           "category": "Breakfast",
-          "ingredients": [
+          "mainIngredients": [
             {"name": "Egg", "icon": "egg_alt"},
           ],
+          "relatedIngredients": [],
           "kcal": 365,
           "minToServe": 5,
+          "isTopMenu": Random().nextBool(),
         },
         {
           "name": "Half Boiled Eggs",
@@ -153,7 +161,8 @@ Future<void> uploadVendorsAndMenus() async {
         'email': 'jaya@example.com',
         'phone': '0123456782',
         'address': 'Cafeteria Block A, AIMST',
-        'logoUrl': 'https://i0.wp.com/runningmen.my/wp-content/uploads/2023/12/DSC_3991.jpg?fit=4512%2C3008&ssl=1',
+        'logoUrl':
+            'https://i0.wp.com/runningmen.my/wp-content/uploads/2023/12/DSC_3991.jpg?fit=4512%2C3008&ssl=1',
         'ownerUid': 'jaya-uid',
         'openDays': [
           'Monday',
@@ -170,284 +179,165 @@ Future<void> uploadVendorsAndMenus() async {
       'foods': [
         {
           'name': 'Chicken Rice',
-          'description': 'Tender chicken with rice and chili sauce',
+          'description':
+              'Tender steamed or roasted chicken served with fragrant rice, chili sauce, and soy sauce.',
           'price': 6.50,
           'imageUrl':
               'https://nomadette.com/wp-content/uploads/2025/01/Honey-Roasted-Chicken-Rice.jpg',
           'category': 'Rice',
+          'mainIngredients': [
+            {'name': 'Chicken', 'icon': 'set_meal'},
+            {'name': 'Rice', 'icon': 'rice_bowl'},
+            {'name': 'Chili', 'icon': 'local_fire_department'},
+          ],
           'kcal': 520,
           'minToServe': 8,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': true,
         },
         {
           'name': 'Nasi Campur',
-          'description': 'Mixed rice with your choice of dishes',
+          'description':
+              'Steamed rice served with a variety of side dishes of your choice.',
           'price': 7.00,
           'imageUrl':
               'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxeob0RTrSBBVQh1aBrk-p4Vrnne_dH2Tqqw&s',
           'category': 'Rice',
+          'mainIngredients': [
+            {'name': 'Rice', 'icon': 'rice_bowl'},
+            {'name': 'Vegetables', 'icon': 'eco'},
+            {'name': 'Protein', 'icon': 'set_meal'},
+          ],
           'kcal': 650,
           'minToServe': 10,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': false,
         },
         {
           'name': 'Mee Goreng Mamak',
-          'description': 'Stir-fried noodles mamak style',
+          'description':
+              'Spicy stir-fried yellow noodles with vegetables, tofu, and egg in mamak style.',
           'price': 5.50,
           'imageUrl':
               'https://www.resipikita.com/wp-content/uploads/2024/01/Resepi-Mee-Goreng-Mamak-Sedap.jpg',
           'category': 'Noodles',
-          'kcal': 590,
-          'minToServe': 7,
-          'ingredients': [
+          'mainIngredients': [
             {'name': 'Noodle', 'icon': 'ramen_dining'},
             {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
+            {'name': 'Tofu', 'icon': 'emoji_nature'},
           ],
+          'kcal': 590,
+          'minToServe': 7,
+          'isTopMenu': true,
         },
         {
           'name': 'Maggi Goreng',
-          'description': 'Fried instant noodles with egg and veggies',
+          'description':
+              'Fried instant noodles with vegetables, egg, and a savory seasoning.',
           'price': 5.00,
           'imageUrl':
               'https://www.newmalaysiankitchen.com/wp-content/uploads/2017/05/Easy-Maggi-Goreng-5-Ingredients.jpg',
           'category': 'Noodles',
+          'mainIngredients': [
+            {'name': 'Instant Noodle', 'icon': 'ramen_dining'},
+            {'name': 'Egg', 'icon': 'egg_alt'},
+            {'name': 'Vegetables', 'icon': 'eco'},
+          ],
           'kcal': 510,
           'minToServe': 5,
-          'ingredients': [
-            {'name': 'Noodle', 'icon': 'ramen_dining'},
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': false,
         },
         {
           'name': 'Ayam Masak Merah',
-          'description': 'Chicken in spicy tomato gravy',
+          'description':
+              'Chicken cooked in spicy, sweet, and tangy tomato-based gravy.',
           'price': 7.50,
           'imageUrl':
               'https://resepichenom.com/images/recipes/f2bce62ac27a2e825dfe3ad5f5d0ca3a11ac10a7.jpeg',
           'category': 'Indian',
+          'mainIngredients': [
+            {'name': 'Chicken', 'icon': 'set_meal'},
+            {'name': 'Tomato', 'icon': 'emoji_food_beverage'},
+            {'name': 'Chili', 'icon': 'local_fire_department'},
+          ],
           'kcal': 480,
           'minToServe': 9,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': true,
         },
         {
           'name': 'Dhal Curry',
-          'description': 'Lentil curry, great with rice',
+          'description':
+              'Lentil curry slow-cooked with spices, perfect with rice or bread.',
           'price': 3.00,
           'imageUrl':
               'https://www.ambitiouskitchen.com/wp-content/uploads/fly-images/69004/The-Best-Dal-Ever-6-500x375-c.jpg',
           'category': 'Indian',
+          'mainIngredients': [
+            {'name': 'Lentil', 'icon': 'eco'},
+            {'name': 'Spices', 'icon': 'restaurant'},
+            {'name': 'Onion', 'icon': 'grass'},
+          ],
           'kcal': 270,
           'minToServe': 6,
-          'ingredients': [
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': false,
         },
         {
           'name': 'Chapati Set',
-          'description': '2 pieces chapati with curry',
+          'description':
+              'Two pieces of chapati served with dhal curry or other sides.',
           'price': 4.50,
           'imageUrl':
               'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbSEU8QBxle3gD9Xb1i_mkusOsoJ77sNQ5jg&s',
           'category': 'Indian',
+          'mainIngredients': [
+            {'name': 'Chapati', 'icon': 'bakery_dining'},
+            {'name': 'Dhal', 'icon': 'eco'},
+          ],
           'kcal': 310,
           'minToServe': 6,
-          'ingredients': [
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
+          'isTopMenu': false,
         },
         {
           'name': 'Sirap Ais',
-          'description': 'Iced rose syrup drink',
+          'description': 'Sweet and refreshing iced rose syrup drink.',
           'price': 1.50,
           'imageUrl': 'https://qbistro.com/wp-content/uploads/2024/01/33-1.png',
           'category': 'Drinks',
+          'mainIngredients': [
+            {'name': 'Rose Syrup', 'icon': 'local_drink'},
+            {'name': 'Ice', 'icon': 'ac_unit'},
+          ],
           'kcal': 120,
           'minToServe': 2,
-          'ingredients': [],
+          'isTopMenu': false,
         },
         {
           'name': 'Limau Ais',
-          'description': 'Iced lime drink',
+          'description': 'Chilled lime juice served with ice.',
           'price': 2.00,
           'imageUrl': 'https://media.myresipi.com/2020/11/myresipi-1205.png',
           'category': 'Drinks',
+          'mainIngredients': [
+            {'name': 'Lime', 'icon': 'spa'},
+            {'name': 'Ice', 'icon': 'ac_unit'},
+          ],
           'kcal': 80,
           'minToServe': 2,
-          'ingredients': [],
+          'isTopMenu': false,
         },
         {
           'name': 'Nescafe Tarik',
-          'description': 'Pulled Nescafe with milk',
+          'description':
+              'Pulled Nescafe coffee blended with milk for a smooth taste.',
           'price': 2.50,
           'imageUrl':
               'https://media-cdn.tripadvisor.com/media/photo-s/0e/cd/e8/00/teh-tarik-nescafe-tarik.jpg',
           'category': 'Drinks',
+          'mainIngredients': [
+            {'name': 'Coffee', 'icon': 'coffee'},
+            {'name': 'Milk', 'icon': 'local_drink'},
+          ],
           'kcal': 104,
           'minToServe': 4,
-          'ingredients': [],
-        },
-      ],
-    },
-    {
-      'vendorId': 'agathiyan-uid',
-      'data': {
-        'name': 'Agathiyan Kitchen',
-        'email': 'agathiyan@example.com',
-        'phone': '0123456783',
-        'address': 'AIMST Food Court',
-        'logoUrl': 'https://www.nusentral.com/wp-content/uploads/2025/02/Untitled-1-03-scaled.jpg',
-        'ownerUid': 'agathiyan-uid',
-        'openDays': [
-          'Monday',
-          'Tuesday',
-          'Wednesday',
-          'Thursday',
-          'Friday',
-          'Saturday',
-        ],
-        'openTime': '10:00',
-        'closeTime': '21:00',
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      'foods': [
-        {
-          'name': 'Vegetarian Thali',
-          'description': 'Indian meal set with rice and curries',
-          'price': 6.50,
-          'imageUrl': 'https://example.com/thali.jpg',
-          'category': 'Indian',
-          'kcal': 620,
-          'minToServe': 10,
-          'ingredients': [
-            {'name': 'Rice', 'icon': 'rice_bowl'},
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Dosa',
-          'description': 'South Indian crepe with chutney',
-          'price': 3.50,
-          'imageUrl':
-              'https://easyindiancookbook.com/wp-content/uploads/2023/02/indian-vegetarian-thali-5-jpg.webp',
-          'category': 'South Indian',
-          'kcal': 180,
-          'minToServe': 6,
-          'ingredients': [
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Idli',
-          'description': 'Soft rice cakes with sambar',
-          'price': 3.00,
-          'imageUrl':
-              'https://maayeka.com/wp-content/uploads/2013/10/soft-idli-recipe.jpg',
-          'category': 'South Indian',
-          'kcal': 200,
-          'minToServe': 5,
-          'ingredients': [
-            {'name': 'Rice', 'icon': 'rice_bowl'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Vadai',
-          'description': 'Savory deep-fried snack',
-          'price': 1.50,
-          'imageUrl':
-              'https://i0.wp.com/cookingfromheart.com/wp-content/uploads/2016/10/Masala-Vadai-3.jpg?resize=720%2C508&ssl=1',
-          'category': 'Snacks',
-          'kcal': 150,
-          'minToServe': 4,
-          'ingredients': [
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Parotta Set',
-          'description': '2 parotta with curry',
-          'price': 5.50,
-          'imageUrl':
-              'https://palakkadbusiness.com/Gangashankaram/wp-content/uploads/sites/79/2023/11/porotta.jpg',
-          'category': 'Indian',
-          'kcal': 530,
-          'minToServe': 8,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
-          ],
-        },
-        {
-          'name': 'Rasam Rice',
-          'description': 'Spicy tamarind soup with rice',
-          'price': 4.00,
-          'imageUrl':
-              'https://smithakalluraya.com/wp-content/uploads/2025/04/One-pot-rasam-rice-recipe-500x500.jpg',
-          'category': 'South Indian',
-          'kcal': 320,
-          'minToServe': 5,
-          'ingredients': [
-            {'name': 'Rice', 'icon': 'rice_bowl'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Sambar Rice',
-          'description': 'Lentil curry rice',
-          'price': 4.50,
-          'imageUrl':
-              'https://rakskitchen.net/wp-content/uploads/2011/03/sambar-sadam_thumb4-403x375.jpg',
-          'category': 'Vegetarian',
-          'kcal': 410,
-          'minToServe': 6,
-          'ingredients': [
-            {'name': 'Rice', 'icon': 'rice_bowl'},
-            {'name': 'Scallion', 'icon': 'grass'},
-          ],
-        },
-        {
-          'name': 'Lassi',
-          'description': 'Yogurt-based drink',
-          'price': 3.00,
-          'imageUrl':
-              'https://www.subbuskitchen.com/wp-content/uploads/2014/05/Lassi_Final4.jpg',
-          'category': 'Drinks',
-          'kcal': 160,
-          'minToServe': 3,
-          'ingredients': [],
-        },
-        {
-          'name': 'Masala Tea',
-          'description': 'Spiced Indian tea',
-          'price': 2.50,
-          'imageUrl':
-              'https://cdn.shopify.com/s/files/1/0758/6929/0779/files/Masala_Tea_-_Annams_Recipes_Shop_2_480x480.jpg?v=1732347934',
-          'category': 'Drinks',
-          'kcal': 120,
-          'minToServe': 3,
-          'ingredients': [],
-        },
-        {
-          'name': 'Filter Coffee',
-          'description': 'Traditional South Indian coffee',
-          'price': 2.50,
-          'imageUrl':
-              'https://www.forestcloud.com.my/cdn/shop/products/DSC_0789.jpg?v=1717493015&width=480',
-          'category': 'Drinks',
-          'kcal': 100,
-          'minToServe': 4,
-          'ingredients': [],
+          'isTopMenu': true,
         },
       ],
     },
@@ -458,7 +348,8 @@ Future<void> uploadVendorsAndMenus() async {
         'email': 'itta@example.com',
         'phone': '0123456784',
         'address': 'Library Building, AIMST',
-        'logoUrl': 'https://www.nusentral.com/wp-content/uploads/2024/08/PHOTO-2024-08-07-11-20-58.jpg',
+        'logoUrl':
+            'https://www.nusentral.com/wp-content/uploads/2024/08/PHOTO-2024-08-07-11-20-58.jpg',
         'ownerUid': 'itta-uid',
         'openDays': [
           'Monday',
@@ -473,131 +364,141 @@ Future<void> uploadVendorsAndMenus() async {
         'closeTime': '22:00',
         'createdAt': FieldValue.serverTimestamp(),
       },
-      'foods': [
+      "foods": [
         {
-          'name': 'Grilled Chicken Sandwich',
-          'description': 'Grilled chicken with lettuce and mayo',
-          'price': 7.00,
-          'imageUrl':
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjGByeT1jUNjJL8XtxT_t2CQmd2hqN1eSz6Q&s',
-          'category': 'Western',
-          'kcal': 520,
-          'minToServe': 7,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
-            {'name': 'Scallion', 'icon': 'grass'},
+          "name": "Grilled Chicken Sandwich",
+          "description": "Grilled chicken with lettuce and mayo",
+          "price": 7.00,
+          "imageUrl":
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjGByeT1jUNjJL8XtxT_t2CQmd2hqN1eSz6Q&s",
+          "category": "Western",
+          "kcal": 520,
+          "minToServe": 7,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Egg", "icon": "egg_alt"},
+            {"name": "Scallion", "icon": "grass"},
           ],
         },
         {
-          'name': 'Mac & Cheese',
-          'description': 'Creamy macaroni with cheddar',
-          'price': 6.50,
-          'imageUrl':
-              'https://cdn.allotta.io/image/upload/v1718730174/dxp-images/brands/Recipes/global-recipes-heinz-nz/the-ultimate-mac-cheese/generated/the-ultimate-mac-cheese-767567.jpg',
-          'category': 'Western',
-          'kcal': 610,
-          'minToServe': 8,
-          'ingredients': [
-            {'name': 'Noodle', 'icon': 'ramen_dining'},
-            {'name': 'Cheese', 'icon': 'set_meal'},
+          "name": "Mac & Cheese",
+          "description": "Creamy macaroni with cheddar",
+          "price": 6.50,
+          "imageUrl":
+              "https://cdn.allotta.io/image/upload/v1718730174/dxp-images/brands/Recipes/global-recipes-heinz-nz/the-ultimate-mac-cheese/generated/the-ultimate-mac-cheese-767567.jpg",
+          "category": "Western",
+          "kcal": 610,
+          "minToServe": 8,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Noodle", "icon": "ramen_dining"},
+            {"name": "Cheese", "icon": "set_meal"},
           ],
         },
         {
-          'name': 'Caesar Salad',
-          'description': 'Fresh salad with Caesar dressing',
-          'price': 5.50,
-          'imageUrl':
-              'https://itsavegworldafterall.com/wp-content/uploads/2023/04/Avocado-Caesar-Salad-FI.jpg',
-          'category': 'Western',
-          'kcal': 280,
-          'minToServe': 5,
-          'ingredients': [
-            {'name': 'Scallion', 'icon': 'grass'},
-            {'name': 'Egg', 'icon': 'egg_alt'},
+          "name": "Caesar Salad",
+          "description": "Fresh salad with Caesar dressing",
+          "price": 5.50,
+          "imageUrl":
+              "https://itsavegworldafterall.com/wp-content/uploads/2023/04/Avocado-Caesar-Salad-FI.jpg",
+          "category": "Western",
+          "kcal": 280,
+          "minToServe": 5,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Scallion", "icon": "grass"},
+            {"name": "Egg", "icon": "egg_alt"},
           ],
         },
         {
-          'name': 'Chocolate Muffin',
-          'description': 'Rich muffin with chocolate chips',
-          'price': 3.00,
-          'imageUrl':
-              'https://www.allrecipes.com/thmb/RdyL1EgIB0Qq_fr5HjdsAmcpMlU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/228553-moist-chocolate-muffins-DDMFS-4x3-a9f73a46938547c99d921613dc167741.jpg',
-          'category': 'Pastry',
-          'kcal': 430,
-          'minToServe': 4,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
+          "name": "Chocolate Muffin",
+          "description": "Rich muffin with chocolate chips",
+          "price": 3.00,
+          "imageUrl":
+              "https://www.allrecipes.com/thmb/RdyL1EgIB0Qq_fr5HjdsAmcpMlU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/228553-moist-chocolate-muffins-DDMFS-4x3-a9f73a46938547c99d921613dc167741.jpg",
+          "category": "Pastry",
+          "kcal": 430,
+          "minToServe": 4,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Egg", "icon": "egg_alt"},
           ],
         },
         {
-          'name': 'Croissant',
-          'description': 'Buttery flaky croissant',
-          'price': 3.50,
-          'imageUrl':
-              'https://static01.nyt.com/images/2021/04/07/dining/06croissantsrex1/06croissantsrex1-mediumSquareAt3X.jpg',
-          'category': 'Pastry',
-          'kcal': 320,
-          'minToServe': 3,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
+          "name": "Croissant",
+          "description": "Buttery flaky croissant",
+          "price": 3.50,
+          "imageUrl":
+              "https://static01.nyt.com/images/2021/04/07/dining/06croissantsrex1/06croissantsrex1-mediumSquareAt3X.jpg",
+          "category": "Pastry",
+          "kcal": 320,
+          "minToServe": 3,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Egg", "icon": "egg_alt"},
           ],
         },
         {
-          'name': 'Blueberry Cheesecake',
-          'description': 'Creamy cheesecake with blueberry topping',
-          'price': 4.50,
-          'imageUrl':
-              'https://www.mybakingaddiction.com/wp-content/uploads/2022/08/plated-blueberry-cheesecake-hero.jpg',
-          'category': 'Dessert',
-          'kcal': 450,
-          'minToServe': 6,
-          'ingredients': [
-            {'name': 'Egg', 'icon': 'egg_alt'},
+          "name": "Blueberry Cheesecake",
+          "description": "Creamy cheesecake with blueberry topping",
+          "price": 4.50,
+          "imageUrl":
+              "https://www.mybakingaddiction.com/wp-content/uploads/2022/08/plated-blueberry-cheesecake-hero.jpg",
+          "category": "Dessert",
+          "kcal": 450,
+          "minToServe": 6,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Egg", "icon": "egg_alt"},
           ],
         },
         {
-          'name': 'Iced Latte',
-          'description': 'Cold espresso with milk',
-          'price': 6.00,
-          'imageUrl':
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWYtwckUUmEcT9NFf_vYuWD2BJQMqzAbiKuQ&s',
-          'category': 'Drinks',
-          'kcal': 130,
-          'minToServe': 3,
-          'ingredients': [],
+          "name": "Iced Latte",
+          "description": "Cold espresso with milk",
+          "price": 6.00,
+          "imageUrl":
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWYtwckUUmEcT9NFf_vYuWD2BJQMqzAbiKuQ&s",
+          "category": "Drinks",
+          "kcal": 130,
+          "minToServe": 3,
+          "isTopMenu": true,
+          "ingredients": [],
         },
         {
-          'name': 'Hot Chocolate',
-          'description': 'Warm cocoa drink with milk',
-          'price': 5.00,
-          'imageUrl':
-              'https://bakerbynature.com/wp-content/uploads/2024/01/Hot-Chocolate-3.jpg',
-          'category': 'Drinks',
-          'kcal': 190,
-          'minToServe': 4,
-          'ingredients': [],
+          "name": "Hot Chocolate",
+          "description": "Warm cocoa drink with milk",
+          "price": 5.00,
+          "imageUrl":
+              "https://bakerbynature.com/wp-content/uploads/2024/01/Hot-Chocolate-3.jpg",
+          "category": "Drinks",
+          "kcal": 190,
+          "minToServe": 4,
+          "isTopMenu": false,
+          "ingredients": [],
         },
         {
-          'name': 'Lemon Iced Tea',
-          'description': 'Cold tea with lemon flavor',
-          'price': 4.00,
-          'imageUrl':
-              'https://www.thesouthernthing.com/wp-content/uploads/2020/05/lemon-lime-tea-cocktail-5-735x1050.jpg',
-          'category': 'Drinks',
-          'kcal': 90,
-          'minToServe': 2,
-          'ingredients': [],
+          "name": "Lemon Iced Tea",
+          "description": "Cold tea with lemon flavor",
+          "price": 4.00,
+          "imageUrl":
+              "https://www.thesouthernthing.com/wp-content/uploads/2020/05/lemon-lime-tea-cocktail-5-735x1050.jpg",
+          "category": "Drinks",
+          "kcal": 90,
+          "minToServe": 2,
+          "isTopMenu": true,
+          "ingredients": [],
         },
         {
-          'name': 'Espresso',
-          'description': 'Strong black coffee',
-          'price': 3.50,
-          'imageUrl':
-              'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/10/54/20/2e/espress-coffee-house.jpg?w=1200&h=1200&s=1',
-          'category': 'Drinks',
-          'kcal': 5,
-          'minToServe': 2,
-          'ingredients': [],
+          "name": "Espresso",
+          "description": "Strong black coffee",
+          "price": 3.50,
+          "imageUrl":
+              "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/10/54/20/2e/espress-coffee-house.jpg?w=1200&h=1200&s=1",
+          "category": "Drinks",
+          "kcal": 5,
+          "minToServe": 2,
+          "isTopMenu": false,
+          "ingredients": [],
         },
       ],
     },

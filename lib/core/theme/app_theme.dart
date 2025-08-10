@@ -28,6 +28,40 @@ MaterialColor createMaterialColor(Color color) {
 }
 
 class AppTheme {
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: Colors.black,
+    colorScheme: const ColorScheme.dark(
+      primary: Colors.white,
+      secondary: AppTheme.accentGreen, // Use accentGreen for secondary
+    ),
+    scaffoldBackgroundColor: Colors.black,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Poppins',
+        color: AppTheme.accentGreen, // Header text in accentGreen
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+      iconTheme: IconThemeData(color: Colors.white),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.accentGreen, // Buttons in accentGreen
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: AppTheme.accentGreen), // Text buttons in accentGreen
+    ),
+    // Add other dark theme properties
+  );
+
   static final Color _primaryDark = const Color(0xFF1A1A1A);
   static final MaterialColor primaryMaterialColor = createMaterialColor(
     _primaryDark,
@@ -65,7 +99,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       titleTextStyle: TextStyle(
         fontFamily: 'Poppins',
-        color: Colors.white,
+        color: AppTheme.accentGreen, // Header text in accentGreen
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),

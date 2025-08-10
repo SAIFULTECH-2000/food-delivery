@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
@@ -11,24 +12,27 @@ class PaymentMethodScreen extends StatefulWidget {
 }
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _cardNumberController = TextEditingController();
-  final _expiryController = TextEditingController();
-  final _cvvController = TextEditingController();
-  final _nameController = TextEditingController();
-
-  bool _isEditing = false;
-  String? _cardDocId;
+  String cardNumber = "";
+  String cardHolder = "";
+  String expiry = "";
 
   @override
   void initState() {
     super.initState();
-    _loadSavedCard();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+    fetchCardData();
   }
 
-  Future<void> _loadSavedCard() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+  Future<void> fetchCardData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -39,246 +43,247 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
       if (snapshot.docs.isNotEmpty) {
         final data = snapshot.docs.first.data();
-        _cardDocId = snapshot.docs.first.id;
-        _cardNumberController.text = data['cardNumber'] ?? '';
-        _expiryController.text = data['expiry'] ?? '';
-        _cvvController.text = data['cvv'] ?? '';
-        _nameController.text = data['name'] ?? '';
-        setState(() {});
+        setState(() {
+          cardNumber = data['cardNumber'] ?? '';
+          cardHolder = data['name'] ?? '';
+          expiry = data['expiry'] ?? '';
+        });
       }
+    } catch (e) {
+      print("Error fetching card: $e");
     }
   }
 
-  @override
-  void dispose() {
-    _cardNumberController.dispose();
-    _expiryController.dispose();
-    _cvvController.dispose();
-    _nameController.dispose();
-    super.dispose();
-  }
+  void _showEditCardDialog() {
+    final _nameController = TextEditingController(text: cardHolder);
+    final _numberController = TextEditingController(text: cardNumber);
+    final _expiryController = TextEditingController(text: expiry);
 
-  Widget _buildCardView() {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.blue[800],
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "VISA",
-                  style: TextStyle(color: Colors.white, fontSize: 24),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _isEditing = true;
-                    });
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.white),
-                  label: const Text(
-                    "Edit",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _cardNumberController.text.replaceAllMapped(
-                RegExp(r".{4}"),
-                (match) => "${match.group(0)} ",
-              ),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                letterSpacing: 2,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Exp: ${_expiryController.text}",
-                  style: const TextStyle(color: Colors.white),
-                ),
-                Text("CVV: ***", style: const TextStyle(color: Colors.white)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _nameController.text,
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormView() {
-    return Form(
-      key: _formKey,
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          TextFormField(
-            controller: _cardNumberController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: "Card Number",
-              prefixIcon: Icon(Icons.credit_card),
-              border: OutlineInputBorder(),
-            ),
-            maxLength: 16,
-            validator: (value) {
-              if (value == null || value.length != 16) {
-                return "Enter a valid 16-digit card number";
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          Row(
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Card'),
+        content: SingleChildScrollView(
+          child: Column(
             children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _expiryController,
-                  keyboardType: TextInputType.datetime,
-                  decoration: const InputDecoration(
-                    labelText: "Expiry (MM/YY)",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null ||
-                        !RegExp(
-                          r'^(0[1-9]|1[0-2])\/?([0-9]{2})$',
-                        ).hasMatch(value)) {
-                      return "Invalid date";
-                    }
-                    return null;
-                  },
-                ),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Card Holder'),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _cvvController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: "CVV",
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLength: 3,
-                  validator: (value) {
-                    if (value == null || value.length != 3) {
-                      return "Enter 3-digit CVV";
-                    }
-                    return null;
-                  },
-                ),
+              TextField(
+                controller: _numberController,
+                decoration: const InputDecoration(labelText: 'Card Number'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _expiryController,
+                decoration: const InputDecoration(labelText: 'Expiry (MM/YY)'),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: "Cardholder Name",
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Enter name";
-              }
-              return null;
-            },
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.save),
-            label: const Text("Save Card"),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              backgroundColor: AppTheme.accentGreen,
-            ),
-            onPressed: _saveCard,
+          ElevatedButton(
+            child: const Text('Save'),
+            onPressed: () async {
+              Navigator.of(context).pop();
+
+              try {
+                await FirebaseFirestore.instance
+                    .doc(
+                      '/users/xLwY7IySlua0E6HrvlUc0D25v3W2/paymentMethods/ijI0kjLrHCN8f8cxQ6Re',
+                    )
+                    .update({
+                      'name': _nameController.text.trim(),
+                      'cardNumber': _numberController.text.trim(),
+                      'expiry': _expiryController.text.trim(),
+                    });
+
+                setState(() {
+                  cardHolder = _nameController.text.trim();
+                  cardNumber = _numberController.text.trim();
+                  expiry = _expiryController.text.trim();
+                });
+              } catch (e) {
+                print("Failed to update card: $e");
+              }
+            },
           ),
         ],
       ),
     );
   }
 
-  Future<void> _saveCard() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final cardData = {
-        'cardNumber': _cardNumberController.text,
-        'expiry': _expiryController.text,
-        'cvv': _cvvController.text,
-        'name': _nameController.text,
-        'timestamp': FieldValue.serverTimestamp(),
-      };
-
-      try {
-        if (_cardDocId != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('paymentMethods')
-              .doc(_cardDocId)
-              .update(cardData);
-        } else {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('paymentMethods')
-              .add(cardData);
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card saved successfully!')),
-          );
-          setState(() {
-            _isEditing = false;
-          });
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving card: $e')));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Payment Method")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: _isEditing
-            ? _buildFormView()
-            : Center(
-                child: SizedBox(
-                  width: 450,
-                  height: 280,
-                  child: _buildCardView(),
-                ),
-              ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0.0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
+
+      body: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTitleSection(),
+              const SizedBox(height: 20.0),
+
+              if (cardNumber.isNotEmpty)
+                _buildCreditCard(
+                  color: const Color.fromARGB(255, 0, 0, 0),
+                  cardExpiration: expiry,
+                  cardHolder: cardHolder,
+                  cardNumber:
+                      '**** **** **** ${cardNumber.substring(cardNumber.length - 4)}',
+                  context: context,
+                ),
+
+              const SizedBox(height: 20.0),
+              _buildAddCardButton(icon: Icons.add, color: AppTheme.accentGreen),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          "Payment Method",
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            "Select a credit card you wish to use.",
+            style: TextStyle(fontSize: 18, color: Colors.black45),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreditCard({
+    required Color color,
+    required String cardNumber,
+    required String cardHolder,
+    required String cardExpiration,
+    required BuildContext context,
+  }) {
+    return Container(
+      height: 180,
+      width: MediaQuery.of(context).size.width,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.4),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 20,
+            top: 20,
+            child: Image.asset("assets/chip.png", height: 40),
+          ),
+          Positioned(
+            right: 20,
+            top: 20,
+            child: Row(
+              children: [
+                Image.asset("assets/mastercard.png", height: 50),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  onPressed: _showEditCardDialog,
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 20,
+            bottom: 60,
+            child: Text(
+              cardNumber,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2.0,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            bottom: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Card Holder",
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+                Text(
+                  cardHolder,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 20,
+            bottom: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Text(
+                  "Expires",
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+                Text(
+                  cardExpiration,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddCardButton({required IconData icon, required Color color}) {
+    return Container(
+      height: 180,
+      width: 320,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F0F0),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black26, width: 2.0),
+      ),
+      child: Center(child: Icon(icon, color: color, size: 50)),
     );
   }
 }

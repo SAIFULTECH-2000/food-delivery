@@ -17,7 +17,10 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -46,19 +49,9 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBw_GhkBZAxgrLUBaAIzjziBFwRuO8dkO8',
-    appId: '1:638590424178:web:337e25068ce1a790bd5eeb',
-    messagingSenderId: '638590424178',
-    projectId: 'food-delivery-4cfb0',
-    authDomain: 'food-delivery-4cfb0.firebaseapp.com',
-    storageBucket: 'food-delivery-4cfb0.firebasestorage.app',
-    measurementId: 'G-5JQPR7GR1Q',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyC4HnWvHfK3N8D-_64WBnkti8MCOcXuqCU',
-    appId: '1:638590424178:android:2aab1f852435f0fabd5eeb',
+    appId: '1:638590424178:android:397a104e08e87fa9bd5eeb',
     messagingSenderId: '638590424178',
     projectId: 'food-delivery-4cfb0',
     storageBucket: 'food-delivery-4cfb0.firebasestorage.app',
@@ -66,10 +59,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA5eivzWSgCII60FxxeY8ECTI2NzxhZjEM',
-    appId: '1:638590424178:ios:f2d86f20c08bfa14bd5eeb',
+    appId: '1:638590424178:ios:218fe36741974d22bd5eeb',
     messagingSenderId: '638590424178',
     projectId: 'food-delivery-4cfb0',
     storageBucket: 'food-delivery-4cfb0.firebasestorage.app',
-    iosBundleId: 'com.example.foodDeliveryApp',
+    androidClientId: '638590424178-d5erqt4unav0lc2qujut6m21dl5ehi72.apps.googleusercontent.com',
+    iosClientId: '638590424178-d8974b0lofp511eg78afraoet1ue2s3i.apps.googleusercontent.com',
+    iosBundleId: 'com.example.fooddeliveryapp',
   );
 }

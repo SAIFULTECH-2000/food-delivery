@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Food Delivery App';
+  String get appName => 'AIMST Food Hub';
 
   @override
   String get signIn => 'SIGN IN';
@@ -144,7 +144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestEmail => 'guest@example.com';
 
   @override
-  String get phoneNA => 'No Phone';
+  String get phoneNA => 'N/A';
 
   @override
   String get browseFoods => 'Browse Foods';
@@ -237,4 +237,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings => 'Settings';
+
+  @override
+  String get searchRestaurantsOrDishes => 'Search restaurants or dishes...';
+
+  @override
+  String get noResultsFound => 'No results found.';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get loginSuccessful => 'Login Successful';
+
+  @override
+  String get welcomeBackExploreMeals => 'Welcome back! Let’s explore some meals.';
+
+  @override
+  String get loginError => 'Login Error';
+
+  @override
+  String get unknownErrorOccurred => 'An unknown error occurred.';
+
+  @override
+  String get someDetailsMayBeWrong => 'Some details may be wrong.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get copyrightAimstUniversity => '© AIMST UNIVERSITY';
+
+  @override
+  String get seeall => 'See All';
+
+  @override
+  String get specialOffer => 'Special Offer';
+
+  @override
+  String get craving_question => 'What are you craving?';
+
+  @override
+  String get discountGuaranteed => 'Discount Guaranteed! 👌';
 }
