@@ -19,7 +19,7 @@ class ModernHomeScreen extends StatefulWidget {
 class _ModernHomeScreenState extends State<ModernHomeScreen> {
   int _bottomNavIndex = 0;
   String selectedLocation = 'Library Building';
-  String selectedLanguage = 'EN';
+  String selectedLanguage = 'en';
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedLanguage = prefs.getString('language') ?? 'EN';
+      selectedLanguage = prefs.getString('language') ?? 'en';
       selectedLocation = prefs.getString('location') ?? 'Library Building';
     });
   }
@@ -38,25 +38,25 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
   final Map<String, List<Map<String, String>>> localizedOffers = {
-    'EN': [
+    'en': [
       {'percent': '30%', 'text': 'Discount only\nvalid for today!'},
       {'percent': 'Buy 1', 'text': 'Get 1 Free\nOn all snacks!'},
       {'percent': '20%', 'text': 'Off for new\nbreakfast items!'},
     ],
-    'MS': [
+    'ms': [
       {'percent': '30%', 'text': 'Diskaun hanya\nsah untuk hari ini!'},
       {'percent': 'Beli 1', 'text': 'Dapat 1 Percuma\nUntuk semua snek!'},
       {'percent': '20%', 'text': 'Diskaun untuk\nmenu sarapan baru!'},
     ],
   };
   final Map<String, Map<String, String>> categoryLabels = {
-    'EN': {
+    'en': {
       'Local': 'Local',
       'Breakfast': 'Breakfast',
       'Snacks': 'Snacks',
       'Drinks': 'Drinks',
     },
-    'MS': {
+    'ms': {
       'Local': 'Tempatan',
       'Breakfast': 'Sarapan',
       'Snacks': 'Snek',
@@ -161,16 +161,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                             });
 
                             // 🌐 Set locale here
-                            Locale locale = newValue == 'EN'
+                            Locale locale = newValue == 'en'
                                 ? const Locale('en')
                                 : const Locale('ms');
                             MyApp.setLocale(context, locale);
                           }
                         },
-                        items: <String>['EN', 'MS'].map((String value) {
+                        items: <String>['en', 'ms'].map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: Text(value == 'EN' ? '🇬🇧 EN' : '🇲🇾 MS'),
+                            child: Text(value == 'en' ? '🇬🇧 EN' : '🇲🇾 MS'),
                           );
                         }).toList(),
                       ),
@@ -413,11 +413,11 @@ class CategoryItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const CategoryItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

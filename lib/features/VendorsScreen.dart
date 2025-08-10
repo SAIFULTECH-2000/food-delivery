@@ -15,7 +15,7 @@ class VendorsScreen extends StatefulWidget {
 
 class _VendorsScreenState extends State<VendorsScreen> {
   final Map<String, List<Map<String, dynamic>>> _foodCache = {};
-  int _bottomNavIndex = 0;
+  final int _bottomNavIndex = 0;
 
   final List<IconData> _navIcons = [
     Icons.home,

@@ -55,9 +55,9 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   void _showEditCardDialog() {
-    final _nameController = TextEditingController(text: cardHolder);
-    final _numberController = TextEditingController(text: cardNumber);
-    final _expiryController = TextEditingController(text: expiry);
+    final nameController = TextEditingController(text: cardHolder);
+    final numberController = TextEditingController(text: cardNumber);
+    final expiryController = TextEditingController(text: expiry);
 
     showDialog(
       context: context,
@@ -67,16 +67,16 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           child: Column(
             children: [
               TextField(
-                controller: _nameController,
+                controller: nameController,
                 decoration: const InputDecoration(labelText: 'Card Holder'),
               ),
               TextField(
-                controller: _numberController,
+                controller: numberController,
                 decoration: const InputDecoration(labelText: 'Card Number'),
                 keyboardType: TextInputType.number,
               ),
               TextField(
-                controller: _expiryController,
+                controller: expiryController,
                 decoration: const InputDecoration(labelText: 'Expiry (MM/YY)'),
               ),
             ],
@@ -98,15 +98,15 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       '/users/xLwY7IySlua0E6HrvlUc0D25v3W2/paymentMethods/ijI0kjLrHCN8f8cxQ6Re',
                     )
                     .update({
-                      'name': _nameController.text.trim(),
-                      'cardNumber': _numberController.text.trim(),
-                      'expiry': _expiryController.text.trim(),
+                      'name': nameController.text.trim(),
+                      'cardNumber': numberController.text.trim(),
+                      'expiry': expiryController.text.trim(),
                     });
 
                 setState(() {
-                  cardHolder = _nameController.text.trim();
-                  cardNumber = _numberController.text.trim();
-                  expiry = _expiryController.text.trim();
+                  cardHolder = nameController.text.trim();
+                  cardNumber = numberController.text.trim();
+                  expiry = expiryController.text.trim();
                 });
               } catch (e) {
                 print("Failed to update card: $e");

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/theme_notifier.dart';
-import 'package:food_delivery_app/data/uploadVendorsAndMenus.dart';
 import 'package:food_delivery_app/features/HelpSupportScreen.dart';
 import 'package:food_delivery_app/features/PaymentMethodScreen.dart';
 import 'package:food_delivery_app/features/RewardsScreen.dart';

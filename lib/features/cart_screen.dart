@@ -289,7 +289,7 @@ class _CartScreenState extends State<CartScreen> {
                           itemBuilder: (context, index) {
                             final item = cartItems[index];
                             return Dismissible(
-                              key: Key(item['id'] ?? 'unknown-${index}'),
+                              key: Key(item['id'] ?? 'unknown-$index'),
 
                               direction: DismissDirection.endToStart,
                               background: Container(

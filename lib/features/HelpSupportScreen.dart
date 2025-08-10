@@ -6,7 +6,7 @@ class HelpSupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final messageController = TextEditingController();
@@ -78,7 +78,7 @@ class HelpSupportScreen extends StatelessWidget {
             const SizedBox(height: 10),
 
             Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 children: [
                   TextFormField(
@@ -116,7 +116,7 @@ class HelpSupportScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (formKey.currentState!.validate()) {
                           // Handle send action
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
