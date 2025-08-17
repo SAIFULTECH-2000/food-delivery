@@ -231,7 +231,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                     onTap: () {
                       Navigator.pushNamed(
                         context,
-                        'SpecialOfferSwiperScreen',
+                        '/SpecialOfferSwiperScreen',
                         arguments: selectedLanguage, // or 'en'
                       );
                     },
@@ -334,31 +334,31 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
               const SizedBox(height: 24),
 
               // Discount Guaranteed
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.discountGuaranteed,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: PageView(
-                  children: [
-                    Image.asset('assets/promo1.png', fit: BoxFit.cover),
-                    Image.asset('assets/promo2.jpg', fit: BoxFit.cover),
-                    Image.asset('assets/promo3.png', fit: BoxFit.cover),
-                  ],
-                ),
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Text(
+              //       AppLocalizations.of(context)!.discountGuaranteed,
+              //       style: Theme.of(context).textTheme.titleLarge,
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(height: 12),
+              // Container(
+              //   height: 150,
+              //   decoration: BoxDecoration(
+              //     color: Theme.of(context).cardColor,
+              //     borderRadius: BorderRadius.circular(16),
+              //   ),
+              //   clipBehavior: Clip.antiAlias,
+              //   child: PageView(
+              //     children: [
+              //       Image.asset('assets/promo1.png', fit: BoxFit.cover),
+              //       Image.asset('assets/promo2.jpg', fit: BoxFit.cover),
+              //       Image.asset('assets/promo3.png', fit: BoxFit.cover),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),
