@@ -103,231 +103,266 @@ class _VendorsScreenState extends State<VendorsScreen> {
 
           final vendors = snapshot.data!.docs;
 
-          return CardSwiper(
-            cardsCount: vendors.length,
-            numberOfCardsDisplayed: 3,
-            isLoop: true,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-            cardBuilder: (context, index, percentX, percentY) {
-              final vendorDoc = vendors[index];
-              final vendor = vendorDoc.data() as Map<String, dynamic>;
-              final vendorId = vendorDoc.id;
+          return Column(
+            children: [
+              Expanded(
+                child: CardSwiper(
+                  cardsCount: vendors.length,
+                  numberOfCardsDisplayed: 3,
+                  isLoop: true,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 32,
+                  ),
+                  cardBuilder: (context, index, percentX, percentY) {
+                    final vendorDoc = vendors[index];
+                    final vendor = vendorDoc.data() as Map<String, dynamic>;
+                    final vendorId = vendorDoc.id;
 
-              return FutureBuilder<List<Map<String, dynamic>>>(
-                future: fetchRandomFoods(vendorId),
-                builder: (context, foodSnapshot) {
-                  final foodItems = foodSnapshot.data ?? [];
+                    return FutureBuilder<List<Map<String, dynamic>>>(
+                      future: fetchRandomFoods(vendorId),
+                      builder: (context, foodSnapshot) {
+                        final foodItems = foodSnapshot.data ?? [];
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      color: Theme.of(
-                        context,
-                      ).cardColor, // Use theme's card color
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              Image.network(
-                                vendor['logoUrl'] ?? '',
-                                height: 180,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  height: 180,
-                                  color: Colors.white,
-                                ), // Use theme's divider color
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Colors.transparent,
-                                        Colors.black.withOpacity(0.6),
-                                      ],
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    vendor['name'] ?? 'Vendor',
-                                    style: TextStyle(
-                                      color: AppTheme.accentGreen,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            color: Theme.of(context).cardColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                Stack(
                                   children: [
-                                    Icon(
-                                      Icons.location_on,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.6),
-                                      size: 18,
+                                    Image.network(
+                                      vendor['logoUrl'] ?? '',
+                                      height: 180,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        height: 180,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        vendor['address'] ?? '',
-                                        style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withOpacity(0.7),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.6),
+                                            ],
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        child: Text(
+                                          vendor['name'] ?? 'Vendor',
+                                          style: TextStyle(
+                                            color: AppTheme.accentGreen,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.access_time,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.6),
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${vendor['openTime'] ?? 'N/A'} - ${vendor['closeTime'] ?? 'N/A'}',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withOpacity(0.7),
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.6),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              vendor['address'] ?? '',
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.7),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "Menu Preview",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  height: 60,
-                                  child:
-                                      foodSnapshot.connectionState ==
-                                          ConnectionState.waiting
-                                      ? const Center(
-                                          child: CircularProgressIndicator(),
-                                        )
-                                      : foodItems.isEmpty
-                                      ? const Center(child: Text("No items"))
-                                      : ListView.separated(
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: foodItems.length,
-                                          itemBuilder: (context, idx) {
-                                            final food = foodItems[idx];
-                                            return Column(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image.network(
-                                                    food['imageUrl'] ?? '',
-                                                    height: 40,
-                                                    width: 40,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (_, __, ___) =>
-                                                            const Icon(
-                                                              Icons.fastfood,
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.access_time,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.6),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${vendor['openTime'] ?? 'N/A'} - ${vendor['closeTime'] ?? 'N/A'}',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withOpacity(0.7),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        "Menu Preview",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      SizedBox(
+                                        height: 60,
+                                        child:
+                                            foodSnapshot.connectionState ==
+                                                ConnectionState.waiting
+                                            ? const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              )
+                                            : foodItems.isEmpty
+                                            ? const Center(
+                                                child: Text("No items"),
+                                              )
+                                            : ListView.separated(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                itemCount: foodItems.length,
+                                                itemBuilder: (context, idx) {
+                                                  final food = foodItems[idx];
+                                                  return Column(
+                                                    children: [
+                                                      ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
                                                             ),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  food['name'] ?? '',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
+                                                        child: Image.network(
+                                                          food['imageUrl'] ??
+                                                              '',
+                                                          height: 40,
+                                                          width: 40,
+                                                          fit: BoxFit.cover,
+                                                          errorBuilder:
+                                                              (
+                                                                _,
+                                                                __,
+                                                                ___,
+                                                              ) => const Icon(
+                                                                Icons.fastfood,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        food['name'] ?? '',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                        ),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                                separatorBuilder: (_, __) =>
+                                                    const SizedBox(width: 8),
+                                              ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              '/menu',
+                                              arguments: vendor['ownerUid'],
                                             );
                                           },
-                                          separatorBuilder: (_, __) =>
-                                              const SizedBox(width: 8),
+                                          icon: const Icon(Icons.arrow_forward),
+                                          label: const Text("View Menu"),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                AppTheme.accentGreen,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                          ),
                                         ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/menu',
-                                        arguments: vendor['ownerUid'],
-                                      );
-                                    },
-                                    icon: const Icon(Icons.arrow_forward),
-                                    label: const Text("View Menu"),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.accentGreen,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
+                                Center(
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.copyrightAimstUniversity,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).primaryColor,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),

@@ -22,28 +22,53 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
   }
 
   Future<void> loadFoodItems() async {
-    final query = await FirebaseFirestore.instance
-        .collection('foods')
-        .where('category', isEqualTo: widget.category)
-        .get();
+    setState(() => isLoading = true);
 
-    setState(() {
-      foodItems = query.docs
-          .map((doc) => {
-                ...doc.data(),
-                'id': doc.id,
-              })
-          .toList();
-      isLoading = false;
-    });
+    try {
+      // Step 1: Get all vendor IDs
+      final vendorsSnapshot = await FirebaseFirestore.instance
+          .collection('vendors')
+          .get();
+      final vendorIds = vendorsSnapshot.docs.map((doc) => doc.id).toList();
+
+      // Step 2: Fetch foods from each vendor
+      List<Map<String, dynamic>> allFoods = [];
+
+      for (var vendorId in vendorIds) {
+        final foodsSnapshot = await FirebaseFirestore.instance
+            .collection('vendors')
+            .doc(vendorId)
+            .collection('foods')
+            .where('category', isEqualTo: widget.category) // exact match
+            .get();
+
+        allFoods.addAll(
+          foodsSnapshot.docs.map(
+            (doc) => {...doc.data(), 'id': doc.id, 'vendorId': vendorId},
+          ),
+        );
+      }
+
+      setState(() {
+        foodItems = allFoods;
+        isLoading = false;
+      });
+
+      // Step 3: Update state
+      setState(() {
+        foodItems = allFoods;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading foods: $e');
+      setState(() => isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (foodItems.isEmpty) {
@@ -63,7 +88,6 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
     );
   }
 }
-
 
 class FoodDetailCard extends StatefulWidget {
   final Map<String, dynamic> foodItem;
@@ -115,10 +139,7 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
                             Navigator.pop(context);
                           },
                         ),
-                        Icon(
-                          Icons.favorite_border,
-                          color: theme.canvasColor,
-                        ),
+                        Icon(Icons.favorite_border, color: theme.canvasColor),
                       ],
                     ),
                   ),
@@ -153,17 +174,31 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.timer, size: 16, color: theme.colorScheme.secondary),
+                  Icon(
+                    Icons.timer,
+                    size: 16,
+                    color: theme.colorScheme.secondary,
+                  ),
                   const SizedBox(width: 4),
-                  Text("${item['minToServe']} min", style: theme.textTheme.bodySmall),
+                  Text(
+                    "${item['minToServe']} min",
+                    style: theme.textTheme.bodySmall,
+                  ),
                   const SizedBox(width: 16),
                   Icon(Icons.star, size: 16, color: Colors.orange),
                   const SizedBox(width: 4),
                   Text("4.8", style: theme.textTheme.bodySmall),
                   const SizedBox(width: 16),
-                  Icon(Icons.local_fire_department, size: 16, color: Colors.red),
+                  Icon(
+                    Icons.local_fire_department,
+                    size: 16,
+                    color: Colors.red,
+                  ),
                   const SizedBox(width: 4),
-                  Text("${item['kcal']} Kcal", style: theme.textTheme.bodySmall),
+                  Text(
+                    "${item['kcal']} Kcal",
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ],
@@ -268,7 +303,8 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
                 'name': item['name'],
                 'price': item['price'],
                 'imageUrl': item['imageUrl'],
-                'restaurantName': item['restaurantName'] ?? 'Unknown Restaurant',
+                'restaurantName':
+                    item['restaurantName'] ?? 'Unknown Restaurant',
                 'quantity': quantity,
                 'createdAt': FieldValue.serverTimestamp(),
               };
@@ -335,12 +371,7 @@ class _IngredientChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: Row(
         children: [

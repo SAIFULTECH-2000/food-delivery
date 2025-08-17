@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadAddress();
   }
 
   Future<void> _loadUserProfile() async {
@@ -41,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         fullName = data['fullName'] ?? 'Guest';
         email = data['email'] ?? 'guest@email.com';
-        address = data['address'] ?? 'Unknown address';
+        //address = data['address'] ?? 'Unknown address';
         profileImageUrl = data['profileImageUrl'] ?? '';
         isLoading = false;
       });
@@ -49,11 +51,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         fullName = 'Guest';
         email = 'guest@email.com';
-        address = 'Unknown address';
+        // address = 'Unknown address';
         profileImageUrl = '';
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _loadAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      address = prefs.getString('selectedLocation') ?? '';
+    });
   }
 
   Future<void> _logout() async {
@@ -124,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.pushNamed(context, '/paymentMethod');
               }),
               _buildTile(Icons.favorite, "Favorite Order", () {
-                Navigator.pushNamed(context, '/favorite');
+                Navigator.pushNamed(context, '/FavoriteScreen');
               }),
             ]),
 
@@ -140,6 +149,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }),
               _buildTile(Icons.notifications, "Notification", () {
                 Navigator.pushNamed(context, '/notifications');
+              }),
+              _buildTile(Icons.notifications, "Rewards", () {
+                Navigator.pushNamed(context, '/rewards');
+              }),
+              _buildTile(Icons.feedback, "Feedback", () {
+                Navigator.pushNamed(context, '/feedback');
+              }),
+              _buildTile(Icons.help_center, 'Help Desk', () {
+                Navigator.pushNamed(context, '/helpdeskscreen');
               }),
             ]),
 

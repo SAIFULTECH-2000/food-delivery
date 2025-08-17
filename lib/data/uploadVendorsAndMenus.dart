@@ -9,11 +9,12 @@ Future<void> uploadVendorsAndMenus() async {
       'vendorId': 'kopitiam-uid',
       'data': {
         'name': 'Kopitiam',
-        'email': 'kopitiam@example.com',
+        'email': 'kopitiam@aimst.com',
+        'password': 'abcd1234',
         'phone': '0123456781',
         'address': 'Student Centre, AIMST',
         'logoUrl':
-            'https://www.businesstoday.com.my/wp-content/uploads/2025/01/oriental-kopi-outlet.jpg',
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM%20(1).jpeg?alt=media&token=581b1175-c70a-40b1-b801-73c066c50c0f',
         'ownerUid': 'kopitiam-uid',
         'openDays': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         'openTime': '07:30',
@@ -153,16 +154,16 @@ Future<void> uploadVendorsAndMenus() async {
         },
       ],
     },
-    // Add other vendors the same way:
     {
       'vendorId': 'jaya-uid',
       'data': {
         'name': 'Jaya Catering',
-        'email': 'jaya@example.com',
+        'email': 'jaya@aimst.com',
+        'password': 'abcd1234',
         'phone': '0123456782',
         'address': 'Cafeteria Block A, AIMST',
         'logoUrl':
-            'https://i0.wp.com/runningmen.my/wp-content/uploads/2023/12/DSC_3991.jpg?fit=4512%2C3008&ssl=1',
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.50%20PM.jpeg?alt=media&token=6c9fd1ae-80c4-4a7c-aaf4-4a9c5638ced6',
         'ownerUid': 'jaya-uid',
         'openDays': [
           'Monday',
@@ -344,12 +345,13 @@ Future<void> uploadVendorsAndMenus() async {
     {
       'vendorId': 'itta-uid',
       'data': {
-        'name': 'Itta Cafe',
-        'email': 'itta@example.com',
+        'name': 'C Delight Aroma Kitchen',
+        'email': 'Aroma@aimst.com',
+        'password': 'abcd1234',
         'phone': '0123456784',
         'address': 'Library Building, AIMST',
         'logoUrl':
-            'https://www.nusentral.com/wp-content/uploads/2024/08/PHOTO-2024-08-07-11-20-58.jpg',
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM%20(2).jpeg?alt=media&token=c8a7d842-ade4-4500-83f4-5468cafd7400',
         'ownerUid': 'itta-uid',
         'openDays': [
           'Monday',
@@ -499,6 +501,180 @@ Future<void> uploadVendorsAndMenus() async {
           "minToServe": 2,
           "isTopMenu": false,
           "ingredients": [],
+        },
+      ],
+    },
+    {
+      'vendorId': 'agathiyan-uid',
+      'data': {
+        'name': 'Agathiyan Kitchen',
+        'email': 'agathiyan@example.com',
+        'password': 'abcd1234',
+        'phone': '0123456783',
+        'address': 'AIMST Food Court',
+        'logoUrl': 'https://example.com/agathiyan.png',
+        'ownerUid': 'agathiyan-uid',
+        'openDays': [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ],
+        'openTime': '10:00',
+        'closeTime': '21:00',
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      "foods": [
+        {
+          "name": "Vegetarian Thali",
+          "description": "Indian meal set with rice and curries",
+          "price": 6.50,
+          "imageUrl":
+              "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Vegetarian_Curry.jpeg/640px-Vegetarian_Curry.jpeg",
+          "category": "Indian",
+          "kcal": 650,
+          "minToServe": 10,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Rice", "icon": "rice_bowl"},
+            {"name": "Vegetables", "icon": "spa"},
+          ],
+        },
+        {
+          "name": "Dosa",
+          "description": "South Indian crepe with chutney",
+          "price": 3.50,
+          "imageUrl":
+              "https://upload.wikimedia.org/wikipedia/commons/9/9f/Dosa_at_Sri_Ganesha_Restauran%2C_Bangkok_%2844570742744%29.jpg",
+          "category": "South Indian",
+          "kcal": 180,
+          "minToServe": 5,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Rice", "icon": "rice_bowl"},
+            {"name": "Lentil", "icon": "grass"},
+          ],
+        },
+        {
+          "name": "Idli",
+          "description": "Soft rice cakes with sambar",
+          "price": 3.00,
+          "imageUrl":
+              "https://maayeka.com/wp-content/uploads/2013/10/soft-idli-recipe.jpg",
+          "category": "South Indian",
+          "kcal": 150,
+          "minToServe": 4,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Rice", "icon": "rice_bowl"},
+            {"name": "Lentil", "icon": "grass"},
+          ],
+        },
+        {
+          "name": "Vadai",
+          "description": "Savory deep-fried snack",
+          "price": 1.50,
+          "imageUrl":
+              "https://www.indianhealthyrecipes.com/wp-content/uploads/2015/08/masala-vada-1.jpg",
+          "category": "Snacks",
+          "kcal": 200,
+          "minToServe": 3,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Lentil", "icon": "grass"},
+            {"name": "Oil", "icon": "water_drop"},
+          ],
+        },
+        {
+          "name": "Parotta Set",
+          "description": "2 parotta with curry",
+          "price": 5.50,
+          "imageUrl":
+              "https://palakkadbusiness.com/Gangashankaram/wp-content/uploads/sites/79/2023/11/porotta.jpg",
+          "category": "Indian",
+          "kcal": 550,
+          "minToServe": 8,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Wheat", "icon": "bakery_dining"},
+            {"name": "Oil", "icon": "water_drop"},
+          ],
+        },
+        {
+          "name": "Rasam Rice",
+          "description": "Spicy tamarind soup with rice",
+          "price": 4.00,
+          "imageUrl":
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiRBeUnRCjB3s3mrgG3xuwyvA6pA5sl75jFw&s",
+          "category": "South Indian",
+          "kcal": 300,
+          "minToServe": 5,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Tamarind", "icon": "eco"},
+            {"name": "Rice", "icon": "rice_bowl"},
+          ],
+        },
+        {
+          "name": "Sambar Rice",
+          "description": "Lentil curry rice",
+          "price": 4.50,
+          "imageUrl":
+              "https://rakskitchen.net/wp-content/uploads/2011/03/sambar-sadam_thumb4-403x375.jpg",
+          "category": "Vegetarian",
+          "kcal": 320,
+          "minToServe": 5,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Lentil", "icon": "grass"},
+            {"name": "Rice", "icon": "rice_bowl"},
+          ],
+        },
+        {
+          "name": "Lassi",
+          "description": "Yogurt-based drink",
+          "price": 3.00,
+          "imageUrl":
+              "https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480_1_5x/img/recipe/ras/Assets/5F34C0E8-8A5A-4ABF-B903-57975CF70D99/Derivates/06BE0235-A4B9-4952-83DF-D29EB2D15074.jpg",
+          "category": "Drinks",
+          "kcal": 180,
+          "minToServe": 2,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Yogurt", "icon": "icecream"},
+          ],
+        },
+        {
+          "name": "Masala Tea",
+          "description": "Spiced Indian tea",
+          "price": 2.50,
+          "imageUrl":
+              "https://cdn.shopify.com/s/files/1/0758/6929/0779/files/Masala_Tea_-_Annams_Recipes_Shop_2_480x480.jpg?v=1732347934",
+          "category": "Drinks",
+          "kcal": 90,
+          "minToServe": 3,
+          "isTopMenu": true,
+          "ingredients": [
+            {"name": "Tea", "icon": "local_cafe"},
+            {"name": "Milk", "icon": "local_drink"},
+          ],
+        },
+        {
+          "name": "Filter Coffee",
+          "description": "Traditional South Indian coffee",
+          "price": 2.50,
+          "imageUrl":
+              "https://www.saffrontrail.com/wp-content/uploads/2006/08/recipe-to-make-filter-kaapi-how-to.1024x1024-1.jpg",
+          "category": "Drinks",
+          "kcal": 70,
+          "minToServe": 3,
+          "isTopMenu": false,
+          "ingredients": [
+            {"name": "Coffee", "icon": "coffee"},
+            {"name": "Milk", "icon": "local_drink"},
+          ],
         },
       ],
     },

@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:food_delivery_app/features/FoodSwiperScreen.dart';
 import 'package:food_delivery_app/features/VendorsScreen.dart';
 import 'package:food_delivery_app/features/cart_screen.dart';
+import 'package:food_delivery_app/features/favorite_screen.dart';
+import 'package:food_delivery_app/features/profile_screen.dart';
 import 'package:food_delivery_app/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'search_result_screen.dart'; // Import the new screen
 import 'package:food_delivery_app/l10n/app_localizations.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class ModernHomeScreen extends StatefulWidget {
   const ModernHomeScreen({super.key});
@@ -83,7 +86,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -97,21 +100,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                         Icons.location_on,
                         color: Theme.of(context).primaryColor,
                       ),
-                      const SizedBox(width: 4),
-                      DropdownButton<String>(
+                      DropdownButton2<String>(
                         value: selectedLocation,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                        underline: const SizedBox(),
-                        onChanged: (String? newValue) async {
-                          if (newValue != null) {
-                            setState(() {
-                              selectedLocation = newValue;
-                            });
+                        onChanged: (value) async {
+                          if (value != null) {
+                            setState(() => selectedLocation = value);
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString(
                               'selectedLocation',
@@ -121,28 +114,44 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                         },
                         items:
                             <String>[
-                              'Library Building',
-                              'Medical Building',
-                              'Dental Building',
-                              'Cafeteria Building',
-                              'Anggerik Hostel',
-                              'Bunga Raya Hostel',
-                              'Teratai Hostel',
-                              'Keriang Hostel',
-                              'Jerai Hostel',
-                              'Sports Complex',
-                            ].map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
+                                  'Library Building',
+                                  'Medical Building',
+                                  'Dental Building',
+                                  'Cafeteria Building',
+                                  'Anggerik Hostel',
+                                  'Bunga Raya Hostel',
+                                  'Teratai Hostel',
+                                  'Keriang Hostel',
+                                  'Jerai Hostel',
+                                  'Sports Complex',
+                                ]
+                                .map(
+                                  (item) => DropdownMenuItem<String>(
+                                    value: item,
+                                    child: Text(item),
+                                  ),
+                                )
+                                .toList(),
+                        buttonStyleData: const ButtonStyleData(
+                          padding: EdgeInsets.symmetric(horizontal: 2),
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                        ),
+                        menuItemStyleData: MenuItemStyleData(
+                          overlayColor: MaterialStateProperty.all(
+                            Colors.red.withOpacity(0.2),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   Row(
                     children: [
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 5),
                       DropdownButton<String>(
                         value: selectedLanguage,
                         underline: const SizedBox(),
@@ -174,7 +183,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                           );
                         }).toList(),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 10),
                       const ProfileAvatar(),
                     ],
                   ),
@@ -218,10 +227,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                     AppLocalizations.of(context)!.specialOffer,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  Text(
-                    AppLocalizations.of(context)!.seeall,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        'SpecialOfferSwiperScreen',
+                        arguments: selectedLanguage, // or 'en'
+                      );
+                    },
+                    child: Text(
+                      AppLocalizations.of(context)!.seeall,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ),
                   ),
                 ],
@@ -323,12 +341,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                     AppLocalizations.of(context)!.discountGuaranteed,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  Text(
-                    AppLocalizations.of(context)!.seeall,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -402,7 +414,22 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
             ? Theme.of(context).colorScheme.secondary
             : Colors.grey,
       ),
-      onPressed: () => setState(() => _bottomNavIndex = index),
+      onPressed: () {
+        setState(() => _bottomNavIndex = index);
+
+        // Navigate for Favorite and Profile screens
+        if (index == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FavoriteScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        }
+      },
     );
   }
 }

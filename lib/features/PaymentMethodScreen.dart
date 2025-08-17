@@ -54,7 +54,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     }
   }
 
-  void _showEditCardDialog() {
+  void _showEditCardDialog(String docId) {
     final nameController = TextEditingController(text: cardHolder);
     final numberController = TextEditingController(text: cardNumber);
     final expiryController = TextEditingController(text: expiry);
@@ -94,9 +94,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
               try {
                 await FirebaseFirestore.instance
-                    .doc(
-                      '/users/xLwY7IySlua0E6HrvlUc0D25v3W2/paymentMethods/ijI0kjLrHCN8f8cxQ6Re',
-                    )
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .collection('paymentMethods')
+                    .doc(docId)
                     .update({
                       'name': nameController.text.trim(),
                       'cardNumber': numberController.text.trim(),
@@ -110,6 +111,76 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 });
               } catch (e) {
                 print("Failed to update card: $e");
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddCardDialog() {
+    final nameController = TextEditingController();
+    final numberController = TextEditingController();
+    final expiryController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Card'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Card Holder'),
+              ),
+              TextField(
+                controller: numberController,
+                decoration: const InputDecoration(labelText: 'Card Number'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: expiryController,
+                decoration: const InputDecoration(labelText: 'Expiry (MM/YY)'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: const Text('Add'),
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user == null) return;
+
+              final cardData = {
+                'name': nameController.text.trim(),
+                'cardNumber': numberController.text.trim(),
+                'expiry': expiryController.text.trim(),
+                'timestamp': FieldValue.serverTimestamp(),
+              };
+
+              try {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .collection('paymentMethods')
+                    .add(cardData);
+
+                Navigator.of(context).pop();
+
+                setState(() {
+                  cardNumber = (cardData['cardNumber'] ?? '').toString();
+                  cardHolder = (cardData['name'] ?? '').toString();
+                  expiry = (cardData['expiry'] ?? '').toString();
+                });
+              } catch (e) {
+                print("Failed to add card: $e");
               }
             },
           ),
@@ -132,7 +203,6 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           },
         ),
       ),
-
       body: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(20.0),
@@ -141,7 +211,6 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             children: [
               _buildTitleSection(),
               const SizedBox(height: 20.0),
-
               if (cardNumber.isNotEmpty)
                 _buildCreditCard(
                   color: const Color.fromARGB(255, 0, 0, 0),
@@ -151,7 +220,6 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                       '**** **** **** ${cardNumber.substring(cardNumber.length - 4)}',
                   context: context,
                 ),
-
               const SizedBox(height: 20.0),
               _buildAddCardButton(icon: Icons.add, color: AppTheme.accentGreen),
             ],
@@ -217,7 +285,22 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                 Image.asset("assets/mastercard.png", height: 50),
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.white),
-                  onPressed: _showEditCardDialog,
+                  onPressed: () {
+                    // Get the doc ID of the latest card
+                    FirebaseAuth.instance.currentUser?.uid;
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser!.uid)
+                        .collection('paymentMethods')
+                        .orderBy('timestamp', descending: true)
+                        .limit(1)
+                        .get()
+                        .then((snapshot) {
+                          if (snapshot.docs.isNotEmpty) {
+                            _showEditCardDialog(snapshot.docs.first.id);
+                          }
+                        });
+                  },
                 ),
               ],
             ),
@@ -275,15 +358,18 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   }
 
   Widget _buildAddCardButton({required IconData icon, required Color color}) {
-    return Container(
-      height: 180,
-      width: 320,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F0),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black26, width: 2.0),
+    return GestureDetector(
+      onTap: _showAddCardDialog,
+      child: Container(
+        height: 180,
+        width: 320,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F0F0),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black26, width: 2.0),
+        ),
+        child: Center(child: Icon(icon, color: color, size: 50)),
       ),
-      child: Center(child: Icon(icon, color: color, size: 50)),
     );
   }
 }

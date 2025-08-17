@@ -40,8 +40,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final doc =
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     final data = doc.data();
 
     if (data != null) {
@@ -79,10 +81,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       profileImageUrl = downloadUrl;
     });
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .update({'profileImageUrl': downloadUrl});
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      'profileImageUrl': downloadUrl,
+    });
   }
 
   Future<void> _saveProfile() async {
@@ -102,7 +103,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
-        .set(userData);
+        .set(userData, SetOptions(merge: true)); // Merge to keep existing data
 
     if (selectedLanguage != null) {
       MyApp.setLocale(context, Locale(selectedLanguage!));
@@ -124,15 +125,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).appBarTheme.iconTheme?.color),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).appBarTheme.iconTheme?.color,
+          ),
           onPressed: () =>
               Navigator.pushReplacementNamed(context, '/dashboard'),
         ),
-        title:
-            Text(local.editProfile, style: TextStyle(color: Theme.of(context).appBarTheme.titleTextStyle?.color)),
+        title: Text(
+          local.editProfile,
+          style: TextStyle(
+            color: Theme.of(context).appBarTheme.titleTextStyle?.color,
+          ),
+        ),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).appBarTheme.iconTheme?.color),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).appBarTheme.iconTheme?.color,
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -151,21 +161,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             backgroundImage: profileImageUrl.isNotEmpty
                                 ? NetworkImage(profileImageUrl)
                                 : const AssetImage(
-                                        'assets/images/avatar_placeholder.png')
-                                    as ImageProvider,
+                                        'assets/images/avatar_placeholder.png',
+                                      )
+                                      as ImageProvider,
                           ),
                           IconButton(
-                            icon: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.onSurface),
+                            icon: Icon(
+                              Icons.camera_alt,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                             onPressed: _pickAndUploadImage,
-                          )
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: fullNameController,
-                      decoration:
-                          _buildInputDecoration(local.fullName, Icons.person),
+                      decoration: _buildInputDecoration(
+                        local.fullName,
+                        Icons.person,
+                      ),
                       validator: (value) => value == null || value.isEmpty
                           ? local.enterName
                           : null,
@@ -173,8 +189,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: emailController,
-                      decoration:
-                          _buildInputDecoration(local.email, Icons.email),
+                      decoration: _buildInputDecoration(
+                        local.email,
+                        Icons.email,
+                      ),
                       validator: (value) => value == null || value.isEmpty
                           ? local.enterEmail
                           : null,
@@ -182,8 +200,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: phoneController,
-                      decoration:
-                          _buildInputDecoration(local.phone, Icons.phone),
+                      decoration: _buildInputDecoration(
+                        local.phone,
+                        Icons.phone,
+                      ),
                       validator: (value) => value == null || value.isEmpty
                           ? local.enterPhone
                           : null,
@@ -191,7 +211,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       decoration: _buildInputDecoration(
-                          local.chooseLanguage, Icons.language),
+                        local.chooseLanguage,
+                        Icons.language,
+                      ),
                       value: selectedLanguage,
                       items: const [
                         DropdownMenuItem(value: 'en', child: Text('English')),
@@ -239,8 +261,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       prefixIcon: Icon(icon),
       filled: true,
       fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: BorderSide.none,
@@ -248,4 +269,3 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
-

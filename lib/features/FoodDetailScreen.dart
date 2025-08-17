@@ -15,6 +15,65 @@ class FoodDetailScreen extends StatefulWidget {
 
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
   int quantity = 1;
+  bool isFavorite = false; // ✅ move outside build
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteStatus();
+  }
+
+  // ✅ async function to load favorite from Firebase
+  Future<void> _loadFavoriteStatus() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final itemId = widget.foodItem['id']; // unique ID for the food
+    final favDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favorites')
+        .doc(itemId)
+        .get();
+
+    setState(() {
+      isFavorite = favDoc.exists;
+    });
+  }
+
+  // ✅ map Firestore ingredient icon string to Flutter IconData
+  IconData _mapIcon(String? iconName) {
+    switch ((iconName ?? '').toLowerCase()) {
+      case 'egg_alt':
+        return Icons.egg_alt;
+      case 'ramen_dining':
+        return Icons.ramen_dining;
+      case 'set_meal':
+        return Icons.set_meal;
+      case 'grass':
+        return Icons.grass;
+      case 'rice_bowl':
+        return Icons.rice_bowl;
+      case 'emoji_food_beverage':
+        return Icons.emoji_food_beverage;
+      case 'lunch_dining':
+        return Icons.lunch_dining;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'restaurant_menu':
+        return Icons.restaurant_menu;
+      case 'local_drink':
+        return Icons.local_drink;
+      case 'kebab_dining':
+        return Icons.kebab_dining;
+      case 'bakery_dining':
+        return Icons.bakery_dining;
+      case 'icecream':
+        return Icons.icecream;
+      default:
+        return Icons.fastfood; // fallback
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,24 +119,85 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                 ); // Go back to previous screen
                               },
                             ),
-                            Icon(
-                              Icons.favorite_border,
-                              color: theme.canvasColor,
+                            IconButton(
+                              icon: Icon(
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.red,
+                              ),
+                              onPressed: () async {
+                                final uid =
+                                    FirebaseAuth.instance.currentUser?.uid;
+                                if (uid == null) return;
+
+                                final favRef = FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(uid)
+                                    .collection('favorites')
+                                    .doc(
+                                      item['id'],
+                                    ); // ensure each food item has an id
+
+                                if (isFavorite) {
+                                  // remove from favorites
+                                  await favRef.delete();
+                                  setState(() => isFavorite = false);
+                                } else {
+                                  // add to favorites
+                                  await favRef.set({
+                                    'name': item['name'],
+                                    'price': item['price'],
+                                    'imageUrl': item['imageUrl'],
+                                    'category': item['category'],
+                                    'addedAt': FieldValue.serverTimestamp(),
+                                  });
+                                  setState(() => isFavorite = true);
+                                }
+                              },
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Image.network(
-                          item['imageUrl'] ?? '',
-                          height: 160,
-                          width: 160,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.image, size: 100),
-                        ),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: Image.network(
+                              item['imageUrl'] ?? '',
+                              height: 160,
+                              width: 160,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.image, size: 100),
+                            ),
+                          ),
+                          if (item['isTopMenu'] ==
+                              true) // show banner if best seller
+                            Positioned(
+                              bottom: 8, // position at bottom
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'Best Seller',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -104,7 +224,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         color: theme.colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
-                      Text("${item['minToServe']} min", style: theme.textTheme.bodySmall),
+                      Text(
+                        "${item['minToServe']} min",
+                        style: theme.textTheme.bodySmall,
+                      ),
                       const SizedBox(width: 16),
                       Icon(Icons.star, size: 16, color: Colors.orange),
                       const SizedBox(width: 4),
@@ -116,7 +239,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         color: Colors.red,
                       ),
                       const SizedBox(width: 4),
-                      Text("${item['kcal']} Kcal", style: theme.textTheme.bodySmall),
+                      Text(
+                        "${item['kcal']} Kcal",
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ],
@@ -131,8 +257,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 children: [
                   Text("RM", style: theme.textTheme.titleMedium),
                   Text(
-                    "${item['price']}",
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    "${(item['price'] as num).toStringAsFixed(2)}",
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -178,19 +304,22 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 80,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: const [
-                  _IngredientChip(name: "Noodle", icon: Icons.ramen_dining),
-                  _IngredientChip(name: "Shrimp", icon: Icons.set_meal),
-                  _IngredientChip(name: "Egg", icon: Icons.egg_alt),
-                  _IngredientChip(name: "Scallion", icon: Icons.grass),
-                ],
+            if (item['ingredients'] != null && item['ingredients'] is List)
+              SizedBox(
+                height: 80,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  children: (item['ingredients'] as List).map((ing) {
+                    final name = ing['name'] ?? '';
+                    final iconName = ing['icon'] ?? '';
+                    return _IngredientChip(
+                      name: name,
+                      icon: _mapIcon(iconName),
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
 
             // About
             Padding(

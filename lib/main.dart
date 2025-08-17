@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:food_delivery_app/core/theme/theme_notifier.dart';
+import 'package:food_delivery_app/data/uploadVendorsAndMenus.dart';
 import 'package:food_delivery_app/features/HelpSupportScreen.dart';
+import 'package:food_delivery_app/features/HelpdesckScreen.dart';
 import 'package:food_delivery_app/features/PaymentMethodScreen.dart';
 import 'package:food_delivery_app/features/RewardsScreen.dart';
 import 'package:food_delivery_app/features/SubscriptionScreen.dart';
+import 'package:food_delivery_app/features/Vendor/VendorHomePage.dart';
+import 'package:food_delivery_app/features/Vendor/vendor_menu_page.dart';
+import 'package:food_delivery_app/features/favorite_screen.dart';
 import 'package:food_delivery_app/features/forget_password_screen.dart';
+import 'package:food_delivery_app/features/specialOfferTinderScreen.dart';
 import 'package:food_delivery_app/features/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -106,6 +112,7 @@ class _MyAppState extends State<MyApp> {
             '/login': (context) => LoginScreen(),
             '/register': (context) => const RegisterScreen(),
             '/dashboard': (context) => const ModernHomeScreen(),
+            '/vendorPage': (context) => const VendorHomePage(),
             '/menu': (context) => const BrowseFoodScreen(),
             '/myOrder': (context) => const MyOrderScreen(),
             '/cart': (context) => CartScreen(),
@@ -123,6 +130,10 @@ class _MyAppState extends State<MyApp> {
             '/splash': (context) => const SplashScreen(),
             '/paymentMethod': (_) => const PaymentMethodScreen(), // Add this
             '/forgotPasswordPage': (context) => const ForgotPasswordScreen(),
+            '/SpecialOfferSwiperScreen': (context) =>
+                const SpecialOfferSwiperScreen(languageCode: 'langCode'),
+            '/FavoriteScreen': (context) => FavoriteScreen(),
+            '/helpdeskscreen': (context) => HelpdeskScreen(),
           },
         );
       },

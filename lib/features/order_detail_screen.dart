@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // for formatting dates
+import 'package:food_delivery_app/features/OrderChatScreen.dart';
+import 'package:intl/intl.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -29,9 +30,7 @@ class OrderDetailScreen extends StatelessWidget {
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('myorder')
+            .collection('myOrders')
             .doc(orderId)
             .get(),
         builder: (context, snapshot) {
@@ -45,20 +44,23 @@ class OrderDetailScreen extends StatelessWidget {
           }
 
           final orderData = snapshot.data!.data() as Map<String, dynamic>;
-          final orderTime = (orderData['createdAt'] as Timestamp).toDate();
+          final orderTime =
+              (orderData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
           final int currentStep = _getStatusIndex(orderTime);
           final String gifUrl = _getGifByStatus(currentStep);
+          final items = Map<String, dynamic>.from(orderData['items'] ?? {});
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Order ID: ${orderId.length > 4 ? orderId.substring(orderId.length - 4) : orderId}',
+                      'Order #${orderId.substring(orderId.length - 4)}',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -71,8 +73,14 @@ class OrderDetailScreen extends StatelessWidget {
                         size: 28,
                       ),
                       onPressed: () {
-                        // Your chat action here
-                        print('Chat icon tapped');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderChatScreen(
+                              orderId: orderId, // you already have this
+                            ),
+                          ),
+                        );
                       },
                       tooltip: 'Chat with Restaurant',
                     ),
@@ -87,12 +95,12 @@ class OrderDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Progress Tracker - Custom horizontal stepper with lines
+                // Progress Tracker
                 _buildProgressTracker(currentStep),
 
                 const SizedBox(height: 30),
 
-                // Status GIF with shadow & rounded corners
+                // Status GIF
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
@@ -111,13 +119,6 @@ class OrderDetailScreen extends StatelessWidget {
                       height: 180,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return SizedBox(
-                          height: 180,
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      },
                       errorBuilder: (_, __, ___) => const SizedBox(
                         height: 180,
                         child: Center(
@@ -135,72 +136,90 @@ class OrderDetailScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 const Text(
-                  'Order History',
+                  'Order Items',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
 
                 const SizedBox(height: 12),
 
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                // Items List
+                ...items.entries.map((entry) {
+                  final item = entry.value as Map<String, dynamic>;
+                  return Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'assets/images/placeholder.png', // add a placeholder asset
-                          image: orderData['imageUrl'] ?? '',
-                          height: 60,
-                          width: 60,
-                          fit: BoxFit.cover,
-                          imageErrorBuilder: (_, __, ___) => const Icon(
-                            Icons.image,
-                            size: 60,
-                            color: Colors.grey,
-                          ),
-                        ),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      title: Text(
-                        orderData['name'] ?? '',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text('${orderData['quantity']} x'),
-                      trailing: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accentGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                        ),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${orderData['name']} reordered'),
+                      child: ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: FadeInImage.assetNetwork(
+                            placeholder: 'assets/images/placeholder.png',
+                            image: item['imageUrl'] ?? '',
+                            height: 60,
+                            width: 60,
+                            fit: BoxFit.cover,
+                            imageErrorBuilder: (_, __, ___) => const Icon(
+                              Icons.fastfood,
+                              size: 30,
+                              color: Colors.grey,
                             ),
-                          );
-                        },
-                        child: const Text(
-                          'Reorder',
-                          style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        title: Text(
+                          item['name'] ?? '',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        subtitle: Text('Qty: ${item['quantity']}'),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("RM${item['price']}"),
+                            const SizedBox(height: 4),
+
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item['name']} reordered successfully',
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Reorder',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                  );
+                }).toList(),
+
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "Total: RM${orderData['totalPrice'] ?? 0}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
@@ -217,7 +236,6 @@ class OrderDetailScreen extends StatelessWidget {
     if (secondsElapsed < 20) return 0;
     if (secondsElapsed < 40) return 1;
     if (secondsElapsed < 60) return 2;
-    if (secondsElapsed < 90) return 3;
     return 3;
   }
 
@@ -235,22 +253,50 @@ class OrderDetailScreen extends StatelessWidget {
         if (index.isEven) {
           final stepIndex = index ~/ 2;
           final isCompleted = stepIndex <= currentStep;
+
           return Column(
             children: [
-              Icon(
-                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isCompleted ? AppTheme.accentGreen : Colors.grey,
-                size: 24,
+              // Consistent circle for all states
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: isCompleted
+                      ? LinearGradient(
+                          colors: [AppTheme.accentGreen, Colors.greenAccent],
+                        )
+                      : LinearGradient(
+                          colors: [Colors.grey.shade300, Colors.grey.shade200],
+                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    isCompleted ? Icons.check : Icons.circle_outlined,
+                    color: isCompleted ? Colors.white : Colors.grey,
+                    size: 18, // fixed size for alignment
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
+
+              const SizedBox(height: 8),
+
               SizedBox(
-                width: 60,
+                width: 70,
                 child: Text(
                   steps[stepIndex],
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isCompleted ? Colors.black : Colors.grey,
+                    color: isCompleted ? Colors.black87 : Colors.grey,
+                    height: 1.3,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -258,13 +304,23 @@ class OrderDetailScreen extends StatelessWidget {
             ],
           );
         } else {
-          // Connecting line between steps
           final lineActive = (index ~/ 2) < currentStep;
           return Expanded(
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
               margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
               height: 4,
-              color: lineActive ? AppTheme.accentGreen : Colors.grey[300],
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                gradient: lineActive
+                    ? LinearGradient(
+                        colors: [AppTheme.accentGreen, Colors.greenAccent],
+                      )
+                    : LinearGradient(
+                        colors: [Colors.grey.shade300, Colors.grey.shade200],
+                      ),
+              ),
             ),
           );
         }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:local_auth/local_auth.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,24 +25,69 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     });
 
-    // Navigate based on auth state after 2.5 seconds
-    Timer(const Duration(seconds: 3), () async {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        Navigator.pushReplacementNamed(
-          context,
-          '/dashboard',
-        ); // user is logged in
-      } else {
-        Navigator.pushReplacementNamed(context, '/info'); // user not logged in
-      }
+    // Start auth logic after 3 seconds
+    Timer(const Duration(seconds: 3), () {
+      _handleAuthenticationLogic();
     });
+  }
+
+  Future<void> _handleAuthenticationLogic() async {
+    final user = FirebaseAuth.instance.currentUser;
+    const vendorEmails = {
+      'kopitiam@aimst.com',
+      'aroma@aimst.com',
+      'agathiyan@aimst.com',
+      'jaya@aimst.com',
+    };
+    if (user == null) {
+      // Not logged in → go to info
+      Navigator.pushReplacementNamed(context, '/info');
+      return;
+    }
+
+    final auth = LocalAuthentication();
+    try {
+      bool canCheck = await auth.canCheckBiometrics;
+      bool isSupported = await auth.isDeviceSupported();
+
+      if (canCheck && isSupported) {
+        bool didAuthenticate = await auth.authenticate(
+          localizedReason: 'Please scan your fingerprint to continue',
+          options: const AuthenticationOptions(
+            biometricOnly: true,
+            stickyAuth: true,
+          ),
+        );
+        String destinationScreen = vendorEmails.contains(user.email)
+            ? '/vendorPage'
+            : '/dashboard';
+        if (didAuthenticate) {
+          Navigator.pushReplacementNamed(context, destinationScreen);
+        } else {
+          // Authentication failed or cancelled
+          _showSnackBar('Fingerprint authentication failed');
+        }
+      } else {
+        // Device doesn't support biometrics → go to info
+        Navigator.pushReplacementNamed(context, '/info');
+      }
+    } catch (e) {
+      _showSnackBar('Error during authentication: $e');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.accentGreen, // splash background
+      backgroundColor: AppTheme.accentGreen,
       body: Center(
         child: AnimatedOpacity(
           duration: const Duration(seconds: 2),
@@ -49,10 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/aimst_food_hub_logo.png', // Add your logo in pubspec.yaml
-                height: 120,
-              ),
+              Image.asset('assets/aimst_food_hub_logo.png', height: 120),
               const SizedBox(height: 16),
               const Text(
                 'AIMST Food Hub',

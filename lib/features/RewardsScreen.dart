@@ -32,15 +32,13 @@ class RewardsScreen extends StatelessWidget {
                   children: [
                     const Text(
                       "Your Points",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       "1,250",
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      style: Theme.of(context).textTheme.headlineLarge
+                          ?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
@@ -83,7 +81,11 @@ class RewardsScreen extends StatelessWidget {
                 children: [
                   rewardTile("10% Off Voucher", "Used on July 28, 2025", true),
                   rewardTile("Free Drink", "Claimed on July 25, 2025", false),
-                  rewardTile("Birthday Special", "Claimed on July 20, 2025", false),
+                  rewardTile(
+                    "Birthday Special",
+                    "Claimed on July 20, 2025",
+                    false,
+                  ),
                 ],
               ),
             ),
@@ -103,14 +105,8 @@ class RewardsScreen extends StatelessWidget {
       title: Text(title),
       subtitle: Text(date),
       trailing: used
-          ? const Text(
-              "Used",
-              style: TextStyle(color: Colors.grey),
-            )
-          : const Text(
-              "Active",
-              style: TextStyle(color: Colors.green),
-            ),
+          ? const Text("Used", style: TextStyle(color: Colors.grey))
+          : const Text("Active", style: TextStyle(color: Colors.green)),
     );
   }
 }

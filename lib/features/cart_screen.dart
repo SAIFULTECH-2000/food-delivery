@@ -28,8 +28,11 @@ class _CartScreenState extends State<CartScreen> {
   bool hasSufficientBalance = true;
   String selectedMethod = 'pickup';
   String paymentMethod = 'fpx';
+  int? deliveryTime;
 
   double deliveryFee = 0.0;
+
+  double discount = 0;
   String restaurantName = 'Unknown Restaurant';
   final Map<String, Map<String, String>> localizedStrings = {
     'EN': {'pickupAddress': 'Pickup Address:'},
@@ -197,9 +200,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
         );
 
-        if (result == true) {
-          fetchCartItems(); // 🟢 refresh your cart after successful payment
-        }
+        fetchCartItems(); // 🟢 refresh your cart after successful payment
       } else {
         throw 'Cannot open payment URL.';
       }
@@ -216,8 +217,14 @@ class _CartScreenState extends State<CartScreen> {
       0.0,
       (sum, item) => sum + (item['price'] * item['quantity']),
     );
+    double deliveryFeeAdjusted = deliveryFee;
     double totalWithDelivery = itemTotal + deliveryFee;
 
+    // Apply discount / free delivery if item total > 20
+    if (itemTotal > 20) {
+      discount = 5; // Delivery fee waived as a “discount”
+      totalWithDelivery = itemTotal - discount + deliveryFee;
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Confirm Order'),
@@ -248,7 +255,42 @@ class _CartScreenState extends State<CartScreen> {
                   subtitle: const Text('Pickup Location will be shown here'),
                   trailing: PopupMenuButton<String>(
                     icon: const Icon(Icons.chevron_right),
-                    onSelected: updateDeliveryMethod,
+                    onSelected: (value) async {
+                      if (value == 'delivery') {
+                        // Show a dialog to pick hours 1-5
+                        int? selectedHour = await showDialog<int>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Select Delivery Time'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(5, (index) {
+                                final hour = index + 1;
+                                return ListTile(
+                                  title: Text(
+                                    '$hour hour${hour > 1 ? 's' : ''} from now',
+                                  ),
+                                  onTap: () => Navigator.of(context).pop(hour),
+                                );
+                              }),
+                            ),
+                          ),
+                        );
+
+                        if (selectedHour != null) {
+                          updateDeliveryMethod('delivery');
+                          setState(() {
+                            selectedMethod = 'delivery';
+                            deliveryTime = selectedHour;
+                          });
+                        }
+                      } else {
+                        updateDeliveryMethod(value);
+                        setState(() {
+                          selectedMethod = value;
+                        });
+                      }
+                    },
                     itemBuilder: (context) => const [
                       PopupMenuItem(value: 'pickup', child: Text('Pickup Now')),
                       PopupMenuItem(
@@ -258,6 +300,7 @@ class _CartScreenState extends State<CartScreen> {
                     ],
                   ),
                 ),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -273,6 +316,8 @@ class _CartScreenState extends State<CartScreen> {
                       Text(
                         selectedMethod == 'pickup'
                             ? 'Pickup Now - Ready in 5 minutes'
+                            : deliveryTime != null
+                            ? 'Delivery - Scheduled in $deliveryTime hour${deliveryTime! > 1 ? 's' : ''}'
                             : 'Delivery - Estimated in 30-45 minutes',
                       ),
                     ],
@@ -349,10 +394,16 @@ class _CartScreenState extends State<CartScreen> {
                         'Delivery Fee',
                         'RM ${deliveryFee.toStringAsFixed(2)}',
                       ),
+                      if (itemTotal > 20)
+                        _buildTotalRow(
+                          'Discount',
+                          '- RM ${discount.toStringAsFixed(2)}',
+                          isBold: true,
+                        ),
                       const Divider(),
                       _buildTotalRow(
                         'Grand Total',
-                        'RM ${totalWithDelivery.toStringAsFixed(2)}',
+                        'RM ${(totalWithDelivery).toStringAsFixed(2)}',
                         isBold: true,
                       ),
                       const SizedBox(height: 16),
@@ -376,9 +427,14 @@ class _CartScreenState extends State<CartScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _initiatePayment(totalWithDelivery),
+                          onPressed: itemTotal == 0
+                              ? null // disables the button automatically
+                              : () => _initiatePayment(totalWithDelivery),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.accentGreen,
+                            backgroundColor: itemTotal == 0
+                                ? Colors
+                                      .grey // grey when disabled
+                                : AppTheme.accentGreen,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -550,13 +606,57 @@ class _PaymentWebViewState extends State<PaymentWebView> {
 
       final cartSnapshot = await cartRef.get();
 
-      for (final doc in cartSnapshot.docs) {
-        await doc.reference.delete();
+      if (cartSnapshot.docs.isEmpty) {
+        debugPrint("Cart is empty.");
+        return;
       }
 
-      debugPrint("✅ User cart cleared.");
+      // --- Group items ---
+      double totalPrice = 0.0;
+      String? restaurantName;
+      final Map<String, dynamic> items = {};
+
+      for (final cartItem in cartSnapshot.docs) {
+        final data = cartItem.data();
+        final itemId = cartItem.id;
+
+        restaurantName = data['restaurantName']; // assume same restaurant
+        final price = (data['price'] as num).toDouble();
+        final qty = (data['quantity'] as num).toInt();
+        totalPrice += price * qty;
+
+        items[itemId] = {
+          'name': data['name'],
+          'price': price,
+          'quantity': qty,
+          'imageUrl': data['imageUrl'],
+        };
+      }
+
+      // --- Save order to top-level myOrders ---
+      final myOrdersRef = FirebaseFirestore.instance.collection('myOrders');
+      final newOrderRef = myOrdersRef.doc(); // unique order ID
+
+      await newOrderRef.set({
+        'restaurantName': restaurantName ?? 'Unknown',
+        'userId': user.uid,
+        'date': FieldValue.serverTimestamp(),
+        'totalPrice': totalPrice,
+        'items': items,
+      });
+
+      // --- Clear cart after placing order ---
+      final batch = FirebaseFirestore.instance.batch();
+      for (final cartItem in cartSnapshot.docs) {
+        batch.delete(cartItem.reference);
+      }
+      await batch.commit();
+
+      debugPrint(
+        "Cart cleared and order placed under myOrders/${newOrderRef.id}",
+      );
     } catch (e) {
-      debugPrint("❌ Failed to clear cart: $e");
+      debugPrint("Error clearing cart: $e");
     }
   }
 }

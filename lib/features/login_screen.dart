@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:food_delivery_app/features/Vendor/VendorHomePage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +38,15 @@ class LoginScreenState extends State<LoginScreen> {
 
       await saveUserDataInSession(userCredential);
 
-      // Show success toast with a small delay
+      // Vendor email list
+      const vendorEmails = {
+        'kopitiam@aimst.com',
+        'aroma@aimst.com',
+        'agathiyan@aimst.com',
+        'jaya@aimst.com',
+      };
+
+      // Show success toast
       Future.delayed(const Duration(milliseconds: 300), () {
         toastification.show(
           context: context,
@@ -49,12 +58,20 @@ class LoginScreenState extends State<LoginScreen> {
         );
       });
 
-      // Wait a bit to let the toast display before navigating
+      // Wait a bit before navigating
       await Future.delayed(const Duration(seconds: 1));
+
+      // Get trimmed lowercase email for comparison
+      final email = emailController.text.trim().toLowerCase();
+
+      // Conditional redirection
+      Widget destinationScreen = vendorEmails.contains(email)
+          ? const VendorHomePage()
+          : const ModernHomeScreen();
 
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const ModernHomeScreen(),
+          pageBuilder: (_, __, ___) => destinationScreen,
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(
               opacity: animation,

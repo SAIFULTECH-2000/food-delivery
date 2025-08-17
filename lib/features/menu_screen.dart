@@ -16,6 +16,11 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
   String selectedCategory = 'All';
   final TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> allFoods = [];
+  List<Map<String, dynamic>> filteredItems = [];
+  List<String> availableCategories = [];
+
+  double? minPrice;
+  double? maxPrice;
 
   int _selectedIndex = 1;
   int cartCount = 0;
@@ -24,14 +29,25 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
+
+    Future.microtask(() async {
       vendorId = ModalRoute.of(context)!.settings.arguments as String;
-      fetchFoodItems(vendorId).then((items) {
-        setState(() {
-          allFoods = items;
-        });
+
+      // Fetch categories
+      final cats = await fetchAvailableCategories(vendorId);
+      setState(() {
+        availableCategories = cats;
+        selectedCategory = cats.isNotEmpty ? cats.first : 'All';
+      });
+
+      // Load foods for first category
+      final items = await fetchFoodItemsByCategory(vendorId, selectedCategory);
+      setState(() {
+        allFoods = items;
+        filteredItems = List.from(allFoods);
       });
     });
+
     fetchCartCount();
   }
 
@@ -50,54 +66,78 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
     });
   }
 
-  Future<List<Map<String, dynamic>>> fetchFoodItems(String vendorId) async {
-    List<Map<String, dynamic>> foodList = [];
+  Future<List<String>> fetchAvailableCategories(String vendorId) async {
+    final vendorDoc = await FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(vendorId)
+        .collection('foods')
+        .get();
 
-    try {
-      final vendorDoc = await FirebaseFirestore.instance
-          .collection('vendors')
-          .doc(vendorId)
-          .get();
-
-      if (!vendorDoc.exists) return foodList;
-
-      final foodsSnapshot = await vendorDoc.reference.collection('foods').get();
-      final vendorData = vendorDoc.data();
-      final vendorName = vendorData?['name'] ?? 'Unknown';
-
-      for (var foodDoc in foodsSnapshot.docs) {
-        final data = foodDoc.data();
-        foodList.add({
-          'name': data['name'],
-          'desc': data['description'],
-          'price': data['price'],
-          'imageUrl': data['imageUrl'],
-          'category': data['category'],
-          'calories': data['calories'] ?? '90',
-          'restaurantName': vendorName,
-          'kcal': data['kcal'],
-          'minToServe': data['minToServe'],
-          'ingredients': data['ingredients'],
-        });
+    final categoriesSet = <String>{};
+    for (var doc in vendorDoc.docs) {
+      final category = doc.data()['category'];
+      if (category != null && category.toString().isNotEmpty) {
+        categoriesSet.add(category.toString());
       }
-    } catch (e) {
-      print("🔥 Error loading foods: $e");
     }
-
-    return foodList;
+    return ['All', ...categoriesSet.toList()];
   }
 
-  List<Map<String, dynamic>> filterItems() {
-    return allFoods.where((item) {
-      final matchesCategory =
-          selectedCategory == 'All' || item['category'] == selectedCategory;
-      final matchesSearch =
-          item['name']?.toString().toLowerCase().contains(
-            searchController.text.toLowerCase(),
-          ) ??
-          false;
-      return matchesCategory && matchesSearch;
+  Future<List<Map<String, dynamic>>> fetchFoodItemsByCategory(
+    String vendorId,
+    String category,
+  ) async {
+    final vendorDoc = await FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(vendorId)
+        .get();
+
+    final restaurantName = vendorDoc.data()?['name'] ?? 'Unknown Vendor';
+
+    Query query = FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(vendorId)
+        .collection('foods');
+
+    if (category != 'All') {
+      query = query.where('category', isEqualTo: category);
+    }
+
+    final snapshot = await query.get();
+
+    final foods = snapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return {
+        'name': data['name'],
+        'desc': data['description'],
+        'price': data['price'],
+        'imageUrl': data['imageUrl'],
+        'category': data['category'],
+        'kcal': data['kcal'],
+        'restaurantName': restaurantName,
+        'isTopMenu': data['isTopMenu'],
+        'minToServe': data['minToServe'],
+        'ingredients': data['ingredients'],
+      };
     }).toList();
+
+    return foods;
+  }
+
+  void _applyFilters() {
+    setState(() {
+      filteredItems = allFoods.where((item) {
+        final price = item['price'] as double;
+        final matchesSearch =
+            item['name']?.toString().toLowerCase().contains(
+              searchController.text.toLowerCase(),
+            ) ??
+            false;
+        final matchesMin = minPrice == null || price >= minPrice!;
+        final matchesMax = maxPrice == null || price <= maxPrice!;
+        return matchesSearch && matchesMin && matchesMax;
+      }).toList();
+    });
   }
 
   void _onBottomNavTap(int index) {
@@ -122,18 +162,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredItems = filterItems();
     final loc = AppLocalizations.of(context)!;
-
-    final categories = [
-      {'key': 'All', 'value': loc.all},
-      {'key': 'rice', 'value': loc.rice},
-      {'key': 'noodles', 'value': loc.noodles},
-      {'key': 'drinks', 'value': loc.beverages},
-      {'key': 'snacks', 'value': loc.snacks},
-      {'key': 'western', 'value': loc.western},
-      {'key': 'indian', 'value': loc.indian},
-    ];
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -154,47 +183,81 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: loc.search,
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
+          // Search + Filter
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: loc.search,
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: (value) => _applyFilters(),
+                  ),
                 ),
               ),
-              onChanged: (value) => setState(() {}),
-            ),
+              IconButton(
+                icon: const Icon(Icons.filter_alt),
+                onPressed: () {
+                  _showPriceFilterDialog(context, (min, max) {
+                    minPrice = min;
+                    maxPrice = max;
+                    _applyFilters();
+                  });
+                },
+              ),
+            ],
           ),
+
+          // Categories
           SizedBox(
             height: 40,
-            child: ListView(
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: categories.map((category) {
-                final isSelected = selectedCategory == category['key'];
+              itemCount: availableCategories.length,
+              itemBuilder: (context, index) {
+                final category = availableCategories[index];
+                final isSelected = selectedCategory == category;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: ChoiceChip(
-                    label: Text(category['value']!),
+                    label: Text(category),
                     selected: isSelected,
                     selectedColor: AppTheme.accentGreen,
-                    onSelected: (_) {
+                    onSelected: (_) async {
                       setState(() {
-                        selectedCategory = category['key']!;
+                        selectedCategory = category;
+                      });
+                      final items = await fetchFoodItemsByCategory(
+                        vendorId,
+                        category,
+                      );
+                      setState(() {
+                        allFoods = items;
+                        _applyFilters();
                       });
                     },
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
           const SizedBox(height: 10),
+
+          // Food Grid
           Expanded(
             child: filteredItems.isEmpty
                 ? Center(child: Text(loc.noFoodsFound))
@@ -211,21 +274,8 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            PageRouteBuilder(
-                              transitionDuration: const Duration(
-                                milliseconds: 400,
-                              ),
-                              pageBuilder: (_, __, ___) =>
-                                  FoodDetailScreen(foodItem: item),
-                              transitionsBuilder: (_, animation, __, child) {
-                                return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(1, 0),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
-                                );
-                              },
+                            MaterialPageRoute(
+                              builder: (_) => FoodDetailScreen(foodItem: item),
                             ),
                           );
                         },
@@ -242,20 +292,48 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                             ],
                           ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(20),
-                                ),
-                                child: Image.network(
-                                  item['imageUrl'] ?? '',
-                                  height: 100,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.image, size: 100),
-                                ),
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(20),
+                                    ),
+                                    child: Image.network(
+                                      item['imageUrl'] ?? '',
+                                      height: 100,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          const Icon(Icons.image, size: 100),
+                                    ),
+                                  ),
+                                  if (item['isTopMenu'] == true)
+                                    Positioned(
+                                      top: 8,
+                                      left: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Best Seller',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Padding(
@@ -301,8 +379,10 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
           ),
         ],
       ),
+
+      // Chat Button
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.accentGreen,
+        backgroundColor: AppTheme.accentRed,
         onPressed: () {
           ScaffoldMessenger.of(
             context,
@@ -311,8 +391,82 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
             Navigator.pushNamed(context, '/chat');
           });
         },
-        child: const Icon(Icons.chat, color: Colors.white),
+        child: const Icon(Icons.smart_toy, color: Colors.white),
       ),
     );
   }
+}
+
+void _showPriceFilterDialog(
+  BuildContext context,
+  Function(double?, double?) onApply,
+) {
+  final minController = TextEditingController();
+  final maxController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.filter_alt, color: Colors.green),
+            SizedBox(width: 8),
+            Text("Filter by Price"),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: minController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: "Minimum Price",
+                prefixText: "RM ",
+                border: UnderlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: maxController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: "Maximum Price",
+                prefixText: "RM ",
+                border: UnderlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              final min = double.tryParse(minController.text);
+              final max = double.tryParse(maxController.text);
+              onApply(min, max);
+              Navigator.pop(context);
+            },
+            child: const Text("Apply"),
+          ),
+        ],
+      );
+    },
+  );
 }

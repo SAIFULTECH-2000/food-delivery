@@ -1,316 +1,207 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:food_delivery_app/core/theme/app_theme.dart';
 import 'package:food_delivery_app/features/order_detail_screen.dart';
-import 'package:food_delivery_app/l10n/app_localizations.dart';
-import 'package:intl/intl.dart';
 
 class MyOrderScreen extends StatefulWidget {
   const MyOrderScreen({super.key});
 
   @override
-  State<MyOrderScreen> createState() => _MyOrderScreenState();
+  State<MyOrderScreen> createState() => _MyOrdersScreenState();
 }
 
-class _MyOrderScreenState extends State<MyOrderScreen> {
-  final List<String> statusSteps = [
-    'Restaurant is making your order',
-    'Driver picked up food',
-    'Driver arrived at your home',
-    'Completed',
-  ];
-
-  int _getStatusIndex(DateTime orderTime) {
-    final secondsElapsed = DateTime.now().difference(orderTime).inSeconds;
-    if (secondsElapsed < 20) return 0;
-    if (secondsElapsed < 40) return 1;
-    if (secondsElapsed < 60) return 2;
-    if (secondsElapsed < 90) return 3;
-    return 3;
-  }
-
+class _MyOrdersScreenState extends State<MyOrderScreen> {
   Stream<QuerySnapshot> _getOrdersStream() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+    print(uid);
+    if (uid == null) {
+      return const Stream.empty();
+    }
+
     return FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('myorder')
-        .orderBy('createdAt', descending: true)
+        .collection('myOrders')
+        .where('userId', isEqualTo: uid) // filter by current user
+        .orderBy('date', descending: true)
         .snapshots();
+  }
+
+  String _formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return "Unknown Date";
+    final date = timestamp.toDate();
+    return "${date.day}-${date.month}-${date.year} "
+        "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> statusSteps = [
-      AppLocalizations.of(context)!.restaurantIsMaking,
-      AppLocalizations.of(context)!.driverPickedUp,
-      AppLocalizations.of(context)!.driverArrived,
-      AppLocalizations.of(context)!.completed,
-    ];
-
     return Scaffold(
-      backgroundColor: AppTheme.canvasCream,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: AppTheme.canvasCream,
+        title: const Text("My Orders"),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, '/dashboard'),
-        ),
-        title: Text(
-          AppLocalizations.of(context)!.my_order,
-          style: const TextStyle(color: Colors.black),
-        ),
+        backgroundColor: Colors.green,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // You might want to reload data explicitly here or just call setState
-          setState(() {});
-          await Future.delayed(const Duration(milliseconds: 500));
-        },
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _getOrdersStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _getOrdersStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.shopping_bag_outlined,
-                      size: 80,
-                      color: Colors.grey[400],
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                "No orders found",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            );
+          }
+
+          final orders = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index].data() as Map<String, dynamic>;
+              final items = Map<String, dynamic>.from(order['items'] ?? {});
+              final orderDate = _formatDate(order['date'] as Timestamp?);
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          OrderDetailScreen(orderId: orders[index].id),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.noOrdersFound,
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            final orders = snapshot.data!.docs;
-
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              itemCount: orders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final orderData = orders[index].data() as Map<String, dynamic>;
-                final orderTime = (orderData['createdAt'] as Timestamp?)
-                    ?.toDate();
-                if (orderTime == null) return const SizedBox();
-
-                final currentStatusIndex = _getStatusIndex(orderTime);
-                final formattedDate = DateFormat(
-                  'dd MMM yyyy, hh:mm a',
-                ).format(orderTime);
-
-                // Assuming orderData contains a list of items
-                final List<dynamic> items = orderData['items'] ?? [];
-
-                // Calculate total price
-                final double totalPrice = items.fold(
-                  0,
-                  (sum, item) => sum + (item['price'] ?? 0),
-                );
-
-                return Material(
-                  elevation: 3,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        PageRouteBuilder(
-                          pageBuilder:
-                              (context, animation, secondaryAnimation) =>
-                                  OrderDetailScreen(orderId: orders[index].id),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                                final offsetAnimation = Tween<Offset>(
-                                  begin: const Offset(1.0, 0.0),
-                                  end: Offset.zero,
-                                ).animate(animation);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  ),
-                                );
-                              },
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Restaurant name + date + total price
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  orderData['restaurantName'] ??
-                                      'Unknown Restaurant',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Restaurant + total
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              order['restaurantName'] ?? "Unknown Restaurant",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "RM${order['totalPrice']}",
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "📅 $orderDate",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+
+                        const Divider(height: 20, thickness: 1),
+
+                        // Preview first 2 items
+                        Column(
+                          children: items.entries.take(2).map((entry) {
+                            final item = entry.value as Map<String, dynamic>;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    formattedDate,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      item['imageUrl'] ?? "",
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.fastfood,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      item['name'] ?? "",
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
+                                  ),
                                   Text(
-                                    '\$${totalPrice.toStringAsFixed(2)}',
+                                    "x${item['quantity']}",
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: AppTheme.accentGreen,
+                                      color: Colors.grey.shade600,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
+                            );
+                          }).toList(),
+                        ),
 
-                          // Horizontal thumbnails of items ordered
-                          SizedBox(
-                            height: 70,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: items.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, idx) {
-                                final item = items[idx];
-                                return Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        item['imageUrl'] ?? '',
-                                        height: 50,
-                                        width: 50,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Icon(
-                                              Icons.fastfood,
-                                              size: 50,
-                                              color: Colors.grey,
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    SizedBox(
-                                      width: 50,
-                                      child: Text(
-                                        item['name'] ?? '',
-                                        style: const TextStyle(fontSize: 10),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
+                        if (items.length > 2)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              "+ ${items.length - 2} more items",
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-
-                          // Status steps horizontal progress indicator
-                          SizedBox(
-                            height: 50,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: statusSteps.asMap().entries.map((
-                                entry,
-                              ) {
-                                final stepIndex = entry.key;
-                                final step = entry.value;
-                                final isCompleted =
-                                    stepIndex <= currentStatusIndex;
-                                final isCurrent =
-                                    stepIndex == currentStatusIndex;
-
-                                return Expanded(
-                                  child: Column(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 14,
-                                        backgroundColor: isCompleted
-                                            ? AppTheme.accentGreen
-                                            : Colors.grey[300],
-                                        child: isCompleted
-                                            ? const Icon(
-                                                Icons.check,
-                                                size: 18,
-                                                color: Colors.white,
-                                              )
-                                            : Text(
-                                                '${stepIndex + 1}',
-                                                style: TextStyle(
-                                                  color: Colors.grey[700],
-                                                ),
-                                              ),
-                                      ),
-
-                                      Text(
-                                        step,
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          fontWeight: isCurrent
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                          color: isCompleted
-                                              ? Colors.black
-                                              : Colors.grey[600],
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2, // Limit to 2 lines max
-                                        overflow: TextOverflow
-                                            .ellipsis, // prevent overflow
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                );
-              },
-            );
-          },
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
+
+/// ORDER DETAIL SCREEN
