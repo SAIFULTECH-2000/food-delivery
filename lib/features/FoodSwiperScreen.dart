@@ -79,6 +79,18 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          onPressed: () =>
+              Navigator.pushReplacementNamed(context, '/dashboard'),
+        ),
+      ),
       body: PageView.builder(
         itemCount: foodItems.length,
         itemBuilder: (context, index) {
