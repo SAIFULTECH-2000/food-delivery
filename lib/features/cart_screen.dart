@@ -387,41 +387,71 @@ class _CartScreenState extends State<CartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildTotalRow(
-                        'Item Total',
+                        'Subtotal',
                         'RM ${itemTotal.toStringAsFixed(2)}',
                       ),
+
                       _buildTotalRow(
-                        'Delivery Fee',
+                        itemTotal > 20 ? 'Delivery Fee (Free)' : 'Delivery Fee',
+
                         'RM ${deliveryFee.toStringAsFixed(2)}',
+                        isBold: itemTotal > 20, // highlight if free
                       ),
+
                       if (itemTotal > 20)
                         _buildTotalRow(
-                          'Discount',
+                          'Discount (Spend RM20+)',
                           '- RM ${discount.toStringAsFixed(2)}',
                           isBold: true,
                         ),
-                      const Divider(),
+
+                      const Divider(thickness: 1),
+
                       _buildTotalRow(
                         'Grand Total',
-                        'RM ${(totalWithDelivery).toStringAsFixed(2)}',
+                        'RM ${totalWithDelivery.toStringAsFixed(2)}',
                         isBold: true,
                       ),
+
                       const SizedBox(height: 16),
 
                       const Text(
                         'Payment Method:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      Row(
-                        children: [
-                          const SizedBox(width: 8),
-                          ChoiceChip(
-                            label: const Text('FPX (Toyyibpay)'),
-                            selected: paymentMethod == 'fpx',
-                            onSelected: (_) => updatePaymentMethod('fpx'),
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 8),
+
+                            // FPX (Toyyibpay)
+                            ChoiceChip(
+                              label: const Text('FPX (Toyyibpay)'),
+                              selected: paymentMethod == 'fpx',
+                              onSelected: (_) => updatePaymentMethod('fpx'),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // TNG eWallet
+                            ChoiceChip(
+                              label: const Text('TNG eWallet'),
+                              selected: paymentMethod == 'tng',
+                              onSelected: (_) => updatePaymentMethod('tng'),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Cash on Delivery
+                            ChoiceChip(
+                              label: const Text('Cash on Delivery'),
+                              selected: paymentMethod == 'cod',
+                              onSelected: (_) => updatePaymentMethod('cod'),
+                            ),
+                          ],
+                        ),
                       ),
+
                       const SizedBox(height: 20),
 
                       SizedBox(

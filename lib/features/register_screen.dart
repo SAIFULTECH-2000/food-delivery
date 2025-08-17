@@ -19,13 +19,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController studentIdController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   Future<void> _register() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Capture Navigator and maybe other context-dependent stuff BEFORE async gaps
     final navigator = Navigator.of(context);
 
     try {
@@ -37,33 +37,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       String uid = userCredential.user!.uid;
 
+      // Save in Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'username': usernameController.text.trim(),
         'fullName': fullNameController.text.trim(),
+        'studentId': studentIdController.text.trim(),
         'email': emailController.text.trim(),
       });
 
+      // Save in SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('uuid', uid);
       await prefs.setString('fullName', fullNameController.text.trim());
+      await prefs.setString('studentId', studentIdController.text.trim());
       await prefs.setString('email', emailController.text.trim());
 
-      // Check mounted here before using context or navigator
       if (!mounted) return;
-
       navigator.pushNamed('/dashboard');
     } catch (e) {
       if (!mounted) return;
-
       showDialog(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Text(e.toString()),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -115,9 +116,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         padding: const EdgeInsets.all(10),
                         child: Column(
                           children: [
-                            // Username
-                            const SizedBox(height: 10),
-
                             // Full Name
                             TextFormField(
                               controller: fullNameController,
@@ -135,6 +133,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   return AppLocalizations.of(
                                     context,
                                   )!.fullNameError;
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Student ID
+                            TextFormField(
+                              controller: studentIdController,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.perm_identity),
+                                labelText: "Student ID / Staff ID",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your Student ID";
                                 }
                                 return null;
                               },
@@ -211,7 +229,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Already have an account?", style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                          Text(
+                            "Already have an account?",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                           TextButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/login');

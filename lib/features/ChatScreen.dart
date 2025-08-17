@@ -161,10 +161,13 @@ User question: $question
                       : MainAxisAlignment.start,
                   children: [
                     if (!isUser)
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 18,
-                        backgroundImage: NetworkImage(
-                          "https://api.dicebear.com/7.x/bottts/svg?seed=ChefieAI",
+                        backgroundColor: AppTheme.accentGreen,
+                        child: const Icon(
+                          Icons.smart_toy,
+                          color: AppTheme.accentRed,
+                          size: 20,
                         ),
                       ),
                     if (!isUser) const SizedBox(width: 6),

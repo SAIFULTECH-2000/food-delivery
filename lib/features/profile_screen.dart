@@ -18,6 +18,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String address = '';
   String profileImageUrl = '';
   String? userId;
+  String studentId = '';
+
   bool isLoading = true;
 
   @override
@@ -43,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         fullName = data['fullName'] ?? 'Guest';
         email = data['email'] ?? 'guest@email.com';
-        //address = data['address'] ?? 'Unknown address';
+        studentId = data['studentId'] ?? 'N/A'; // ✅ added
         profileImageUrl = data['profileImageUrl'] ?? '';
         isLoading = false;
       });
@@ -51,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         fullName = 'Guest';
         email = 'guest@email.com';
-        // address = 'Unknown address';
+        studentId = 'N/A'; // ✅ added
         profileImageUrl = '';
         isLoading = false;
       });
@@ -124,6 +126,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              "$studentId",
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
             ),
             const SizedBox(height: 20),
 

@@ -143,6 +143,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                   // remove from favorites
                                   await favRef.delete();
                                   setState(() => isFavorite = false);
+
+                                  _showCutePopup(
+                                    context,
+                                    title: "Removed 💔",
+                                    message:
+                                        "${item['name']} has been removed from your favorites.",
+                                    color: Colors.redAccent,
+                                  );
                                 } else {
                                   // add to favorites
                                   await favRef.set({
@@ -153,6 +161,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                     'addedAt': FieldValue.serverTimestamp(),
                                   });
                                   setState(() => isFavorite = true);
+
+                                  _showCutePopup(
+                                    context,
+                                    title: "Added 💖",
+                                    message:
+                                        "${item['name']} is now in your favorites!",
+                                    color: Colors.pinkAccent,
+                                  );
                                 }
                               },
                             ),
@@ -404,6 +420,64 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCutePopup(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: color.withOpacity(0.2),
+                  child: Icon(Icons.favorite, color: color, size: 35),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Okay"),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -38,6 +38,7 @@ Future<void> uploadVendorsAndMenus() async {
           "kcal": 421,
           "minToServe": 9,
           "isTopMenu": true,
+          "isVeg": false,
         },
         {
           "name": "Roti Bakar",
@@ -54,6 +55,7 @@ Future<void> uploadVendorsAndMenus() async {
           "kcal": 365,
           "minToServe": 5,
           "isTopMenu": Random().nextBool(),
+          "isVeg": true,
         },
         {
           "name": "Half Boiled Eggs",
@@ -67,6 +69,7 @@ Future<void> uploadVendorsAndMenus() async {
           ],
           "kcal": 209,
           "minToServe": 6,
+          "isVeg": true,
         },
         {
           "name": "Mee Hoon Goreng",
@@ -81,6 +84,7 @@ Future<void> uploadVendorsAndMenus() async {
           ],
           "kcal": 509,
           "minToServe": 10,
+          "isVeg": true,
         },
         {
           "name": "Kaya Puff",
@@ -92,6 +96,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [],
           "kcal": 287,
           "minToServe": 3,
+          "isVeg": true,
         },
         {
           "name": "Curry Puff",
@@ -105,6 +110,8 @@ Future<void> uploadVendorsAndMenus() async {
           ],
           "kcal": 223,
           "minToServe": 3,
+          "isVeg":
+              false, // assuming this version has meat as suggested by the image name and typical filling
         },
         {
           "name": "Fried Spring Roll",
@@ -118,6 +125,7 @@ Future<void> uploadVendorsAndMenus() async {
           ],
           "kcal": 181,
           "minToServe": 2,
+          "isVeg": true,
         },
         {
           "name": "Teh Tarik",
@@ -129,6 +137,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [],
           "kcal": 104,
           "minToServe": 4,
+          "isVeg": true,
         },
         {
           "name": "Kopi O",
@@ -140,6 +149,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [],
           "kcal": 139,
           "minToServe": 3,
+          "isVeg": true,
         },
         {
           "name": "Milo Ais",
@@ -151,6 +161,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [],
           "kcal": 93,
           "minToServe": 3,
+          "isVeg": true,
         },
       ],
     },
@@ -194,6 +205,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 520,
           'minToServe': 8,
           'isTopMenu': true,
+          'isVeg': false,
         },
         {
           'name': 'Nasi Campur',
@@ -211,6 +223,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 650,
           'minToServe': 10,
           'isTopMenu': false,
+          'isVeg': false, // "Protein" usually includes meat/fish
         },
         {
           'name': 'Mee Goreng Mamak',
@@ -228,6 +241,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 590,
           'minToServe': 7,
           'isTopMenu': true,
+          'isVeg': true,
         },
         {
           'name': 'Maggi Goreng',
@@ -245,6 +259,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 510,
           'minToServe': 5,
           'isTopMenu': false,
+          'isVeg': true,
         },
         {
           'name': 'Ayam Masak Merah',
@@ -262,6 +277,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 480,
           'minToServe': 9,
           'isTopMenu': true,
+          'isVeg': false,
         },
         {
           'name': 'Dhal Curry',
@@ -279,6 +295,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 270,
           'minToServe': 6,
           'isTopMenu': false,
+          'isVeg': true,
         },
         {
           'name': 'Chapati Set',
@@ -295,6 +312,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 310,
           'minToServe': 6,
           'isTopMenu': false,
+          'isVeg': true,
         },
         {
           'name': 'Sirap Ais',
@@ -309,6 +327,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 120,
           'minToServe': 2,
           'isTopMenu': false,
+          'isVeg': true,
         },
         {
           'name': 'Limau Ais',
@@ -323,6 +342,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 80,
           'minToServe': 2,
           'isTopMenu': false,
+          'isVeg': true,
         },
         {
           'name': 'Nescafe Tarik',
@@ -339,6 +359,7 @@ Future<void> uploadVendorsAndMenus() async {
           'kcal': 104,
           'minToServe': 4,
           'isTopMenu': true,
+          'isVeg': true,
         },
       ],
     },
@@ -381,6 +402,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Egg", "icon": "egg_alt"},
             {"name": "Scallion", "icon": "grass"},
           ],
+          "isVeg": false,
         },
         {
           "name": "Mac & Cheese",
@@ -396,6 +418,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Noodle", "icon": "ramen_dining"},
             {"name": "Cheese", "icon": "set_meal"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Caesar Salad",
@@ -411,6 +434,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Scallion", "icon": "grass"},
             {"name": "Egg", "icon": "egg_alt"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Chocolate Muffin",
@@ -425,6 +449,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [
             {"name": "Egg", "icon": "egg_alt"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Croissant",
@@ -439,6 +464,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [
             {"name": "Egg", "icon": "egg_alt"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Blueberry Cheesecake",
@@ -453,6 +479,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [
             {"name": "Egg", "icon": "egg_alt"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Iced Latte",
@@ -465,6 +492,7 @@ Future<void> uploadVendorsAndMenus() async {
           "minToServe": 3,
           "isTopMenu": true,
           "ingredients": [],
+          "isVeg": true,
         },
         {
           "name": "Hot Chocolate",
@@ -477,6 +505,7 @@ Future<void> uploadVendorsAndMenus() async {
           "minToServe": 4,
           "isTopMenu": false,
           "ingredients": [],
+          "isVeg": true,
         },
         {
           "name": "Lemon Iced Tea",
@@ -489,6 +518,7 @@ Future<void> uploadVendorsAndMenus() async {
           "minToServe": 2,
           "isTopMenu": true,
           "ingredients": [],
+          "isVeg": true,
         },
         {
           "name": "Espresso",
@@ -501,6 +531,7 @@ Future<void> uploadVendorsAndMenus() async {
           "minToServe": 2,
           "isTopMenu": false,
           "ingredients": [],
+          "isVeg": true,
         },
       ],
     },
@@ -541,6 +572,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Rice", "icon": "rice_bowl"},
             {"name": "Vegetables", "icon": "spa"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Dosa",
@@ -556,6 +588,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Rice", "icon": "rice_bowl"},
             {"name": "Lentil", "icon": "grass"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Idli",
@@ -571,6 +604,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Rice", "icon": "rice_bowl"},
             {"name": "Lentil", "icon": "grass"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Vadai",
@@ -586,6 +620,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Lentil", "icon": "grass"},
             {"name": "Oil", "icon": "water_drop"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Parotta Set",
@@ -601,6 +636,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Wheat", "icon": "bakery_dining"},
             {"name": "Oil", "icon": "water_drop"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Rasam Rice",
@@ -616,6 +652,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Tamarind", "icon": "eco"},
             {"name": "Rice", "icon": "rice_bowl"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Sambar Rice",
@@ -631,6 +668,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Lentil", "icon": "grass"},
             {"name": "Rice", "icon": "rice_bowl"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Lassi",
@@ -645,6 +683,7 @@ Future<void> uploadVendorsAndMenus() async {
           "ingredients": [
             {"name": "Yogurt", "icon": "icecream"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Masala Tea",
@@ -660,6 +699,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Tea", "icon": "local_cafe"},
             {"name": "Milk", "icon": "local_drink"},
           ],
+          "isVeg": true,
         },
         {
           "name": "Filter Coffee",
@@ -675,6 +715,7 @@ Future<void> uploadVendorsAndMenus() async {
             {"name": "Coffee", "icon": "coffee"},
             {"name": "Milk", "icon": "local_drink"},
           ],
+          "isVeg": true,
         },
       ],
     },

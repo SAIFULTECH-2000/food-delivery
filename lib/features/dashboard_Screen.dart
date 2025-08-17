@@ -40,18 +40,58 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  final Map<String, List<Map<String, String>>> localizedOffers = {
+  final localizedOffers = {
     'en': [
-      {'percent': '30%', 'text': 'Discount only\nvalid for today!'},
-      {'percent': 'Buy 1', 'text': 'Get 1 Free\nOn all snacks!'},
-      {'percent': '20%', 'text': 'Off for new\nbreakfast items!'},
+      {
+        'name': 'Agathiyan Kitchen',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM.jpeg?alt=media&token=4cf11977-a9d7-4def-b29f-37327d07b1b2',
+        'percent': '20% OFF',
+        'text': 'Get 20% off on all Tamil Nadu meals above RM40.',
+      },
+      {
+        'name': 'Jaya Catering',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.50%20PM.jpeg?alt=media&token=6c9fd1ae-80c4-4a7c-aaf4-4a9c5638ced6',
+        'percent': 'Buy 1 Get 1 Free',
+        'text': 'BOGO deal on selected South Indian dishes.',
+      },
+      {
+        'name': 'Kopitiam',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM%20(1).jpeg?alt=media&token=581b1175-c70a-40b1-b801-73c066c50c0f',
+        'percent': '15% OFF',
+        'text': 'Enjoy traditional Malaysian breakfast with 15% off.',
+      },
     ],
+
     'ms': [
-      {'percent': '30%', 'text': 'Diskaun hanya\nsah untuk hari ini!'},
-      {'percent': 'Beli 1', 'text': 'Dapat 1 Percuma\nUntuk semua snek!'},
-      {'percent': '20%', 'text': 'Diskaun untuk\nmenu sarapan baru!'},
+      {
+        'name': 'Dapur Agathiyan',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM.jpeg?alt=media&token=4cf11977-a9d7-4def-b29f-37327d07b1b2',
+        'percent': 'Diskaun 20%',
+        'text':
+            'Dapatkan diskaun 20% untuk semua hidangan Tamil Nadu bernilai lebih RM40.',
+      },
+      {
+        'name': 'Katering Jaya',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.50%20PM.jpeg?alt=media&token=6c9fd1ae-80c4-4a7c-aaf4-4a9c5638ced6',
+        'percent': 'Beli 1 Percuma 1',
+        'text':
+            'Promosi beli satu percuma satu untuk hidangan India Selatan terpilih.',
+      },
+      {
+        'name': 'Kopitiam',
+        'logoUrl':
+            'https://firebasestorage.googleapis.com/v0/b/food-delivery-4a375.firebasestorage.app/o/vendors%2FWhatsApp%20Image%202025-08-05%20at%209.31.49%20PM%20(1).jpeg?alt=media&token=581b1175-c70a-40b1-b801-73c066c50c0f',
+        'percent': 'Diskaun 15%',
+        'text': 'Nikmati sarapan tradisional Malaysia dengan diskaun 15%.',
+      },
     ],
   };
+
   final Map<String, Map<String, String>> categoryLabels = {
     'en': {
       'Local': 'Local',
@@ -253,48 +293,114 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                   itemBuilder: (context, index) {
                     final offers = localizedOffers[selectedLanguage] ?? [];
                     final promo = offers[index];
+
+                    final name = promo['name'] ?? 'Unnamed Restaurant';
                     final percent = promo['percent'] ?? '';
                     final text = promo['text'] ?? '';
+                    final logoUrl = promo['logoUrl'] ?? '';
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.secondary.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              contentPadding: const EdgeInsets.all(16),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
+                                  if (logoUrl.isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        logoUrl,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  const SizedBox(height: 12),
                                   Text(
-                                    percent,
+                                    name,
                                     style: const TextStyle(
-                                      fontSize: 32,
-                                      color: Colors.white,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    percent,
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
                                   Text(
                                     text,
-                                    style: const TextStyle(color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondary.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      percent,
+                                      style: const TextStyle(
+                                        fontSize: 32,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      text,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
                   },
                 ),
               ),
+
               const SizedBox(height: 24),
 
               // Categories
@@ -333,32 +439,30 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Discount Guaranteed
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //   children: [
-              //     Text(
-              //       AppLocalizations.of(context)!.discountGuaranteed,
-              //       style: Theme.of(context).textTheme.titleLarge,
-              //     ),
-              //   ],
-              // ),
-              // const SizedBox(height: 12),
-              // Container(
-              //   height: 150,
-              //   decoration: BoxDecoration(
-              //     color: Theme.of(context).cardColor,
-              //     borderRadius: BorderRadius.circular(16),
-              //   ),
-              //   clipBehavior: Clip.antiAlias,
-              //   child: PageView(
-              //     children: [
-              //       Image.asset('assets/promo1.png', fit: BoxFit.cover),
-              //       Image.asset('assets/promo2.jpg', fit: BoxFit.cover),
-              //       Image.asset('assets/promo3.png', fit: BoxFit.cover),
-              //     ],
-              //   ),
-              // ),
+              //  Discount Guaranteed
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.discountGuaranteed,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: PageView(
+                  children: [
+                    Image.asset('assets/promo.png', fit: BoxFit.cover),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

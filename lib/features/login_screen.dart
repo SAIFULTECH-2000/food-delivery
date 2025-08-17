@@ -30,9 +30,40 @@ class LoginScreenState extends State<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     try {
+      String loginInput = emailController.text.trim();
+      String emailToUse = loginInput;
+
+      // Check if input is not an email (no @ symbol, assume it's student/staff ID)
+      if (!loginInput.contains('@')) {
+        // Lookup Firestore for studentId or staffId
+        final snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('studentId', isEqualTo: loginInput)
+            .get();
+
+        if (snapshot.docs.isEmpty) {
+          final staffSnapshot = await FirebaseFirestore.instance
+              .collection('users')
+              .where('staffId', isEqualTo: loginInput)
+              .get();
+
+          if (staffSnapshot.docs.isEmpty) {
+            throw FirebaseAuthException(
+              code: 'user-not-found',
+              message: 'No user found with this Student/Staff ID',
+            );
+          } else {
+            emailToUse = staffSnapshot.docs.first['email'];
+          }
+        } else {
+          emailToUse = snapshot.docs.first['email'];
+        }
+      }
+
+      // Login using the resolved email
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-            email: emailController.text.trim(),
+            email: emailToUse,
             password: passwordController.text.trim(),
           );
 
@@ -58,13 +89,9 @@ class LoginScreenState extends State<LoginScreen> {
         );
       });
 
-      // Wait a bit before navigating
       await Future.delayed(const Duration(seconds: 1));
 
-      // Get trimmed lowercase email for comparison
-      final email = emailController.text.trim().toLowerCase();
-
-      // Conditional redirection
+      final email = emailToUse.toLowerCase();
       Widget destinationScreen = vendorEmails.contains(email)
           ? const VendorHomePage()
           : const ModernHomeScreen();
@@ -201,14 +228,12 @@ class LoginScreenState extends State<LoginScreen> {
                       children: [
                         CustomTextField(
                           controller: emailController,
-                          labelText: AppLocalizations.of(context)!.email,
-                          icon: Icons.email,
+                          labelText: "Email / Student ID / Staff ID",
+                          icon: Icons.person,
                           obscureText: false,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(
-                                context,
-                              )!.enterEmailError;
+                              return "Please enter your Email / Student ID / Staff ID";
                             }
                             return null;
                           },

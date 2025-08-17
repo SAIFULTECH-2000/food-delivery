@@ -21,6 +21,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
 
   double? minPrice;
   double? maxPrice;
+  bool? isVegFilter; // null = all, true = veg, false = non-veg
 
   int _selectedIndex = 1;
   int cartCount = 0;
@@ -118,6 +119,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
         'isTopMenu': data['isTopMenu'],
         'minToServe': data['minToServe'],
         'ingredients': data['ingredients'],
+        'isVeg': data['isVeg'], // ✅ make sure foods collection has this field
       };
     }).toList();
 
@@ -127,15 +129,21 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
   void _applyFilters() {
     setState(() {
       filteredItems = allFoods.where((item) {
-        final price = item['price'] as double;
+        final price = item['price'] is int
+            ? (item['price'] as int).toDouble()
+            : (item['price'] as double);
+
         final matchesSearch =
             item['name']?.toString().toLowerCase().contains(
               searchController.text.toLowerCase(),
             ) ??
             false;
+
         final matchesMin = minPrice == null || price >= minPrice!;
         final matchesMax = maxPrice == null || price <= maxPrice!;
-        return matchesSearch && matchesMin && matchesMax;
+        final matchesVeg = isVegFilter == null || item['isVeg'] == isVegFilter;
+
+        return matchesSearch && matchesMin && matchesMax && matchesVeg;
       }).toList();
     });
   }
@@ -211,9 +219,10 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
               IconButton(
                 icon: const Icon(Icons.filter_alt),
                 onPressed: () {
-                  _showPriceFilterDialog(context, (min, max) {
+                  _showFilterDialog(context, (min, max, veg) {
                     minPrice = min;
                     maxPrice = max;
+                    isVegFilter = veg;
                     _applyFilters();
                   });
                 },
@@ -324,7 +333,7 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
                                           ),
                                         ),
                                         child: const Text(
-                                          'Best Seller',
+                                          '🔥 Best Seller 👍',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,
@@ -397,75 +406,124 @@ class _BrowseFoodScreenState extends State<BrowseFoodScreen> {
   }
 }
 
-void _showPriceFilterDialog(
+void _showFilterDialog(
   BuildContext context,
-  Function(double?, double?) onApply,
+  Function(double?, double?, bool?) onApply,
 ) {
   final minController = TextEditingController();
   final maxController = TextEditingController();
+  bool? tempIsVegFilter;
 
   showDialog(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: const [
-            Icon(Icons.filter_alt, color: Colors.green),
-            SizedBox(width: 8),
-            Text("Filter by Price"),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: minController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: "Minimum Price",
-                prefixText: "RM ",
-                border: UnderlineInputBorder(),
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: const [
+                Icon(Icons.filter_alt, color: Colors.green),
+                SizedBox(width: 8),
+                Text("Filters"),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Price Min
+                  TextField(
+                    controller: minController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: "Minimum Price",
+                      prefixText: "RM ",
+                      border: UnderlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Price Max
+                  TextField(
+                    controller: maxController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: "Maximum Price",
+                      prefixText: "RM ",
+                      border: UnderlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Veg / Non-Veg filter
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Food Type",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    children: [
+                      ChoiceChip(
+                        label: const Text("All"),
+                        selected: tempIsVegFilter == null,
+                        onSelected: (_) =>
+                            setState(() => tempIsVegFilter = null),
+                      ),
+                      ChoiceChip(
+                        label: const Text("Veg"),
+                        selected: tempIsVegFilter == true,
+                        onSelected: (_) =>
+                            setState(() => tempIsVegFilter = true),
+                      ),
+                      ChoiceChip(
+                        label: const Text("Non-Veg"),
+                        selected: tempIsVegFilter == false,
+                        onSelected: (_) =>
+                            setState(() => tempIsVegFilter = false),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: maxController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
               ),
-              decoration: const InputDecoration(
-                labelText: "Maximum Price",
-                prefixText: "RM ",
-                border: UnderlineInputBorder(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  final min = double.tryParse(minController.text);
+                  final max = double.tryParse(maxController.text);
+                  onApply(min, max, tempIsVegFilter);
+                  Navigator.pop(context);
+                },
+                child: const Text("Apply"),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 0,
-            ),
-            onPressed: () {
-              final min = double.tryParse(minController.text);
-              final max = double.tryParse(maxController.text);
-              onApply(min, max);
-              Navigator.pop(context);
-            },
-            child: const Text("Apply"),
-          ),
-        ],
+            ],
+          );
+        },
       );
     },
   );

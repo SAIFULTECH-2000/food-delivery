@@ -22,6 +22,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final fullNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
+  final studentIdController = TextEditingController();
 
   String? selectedLanguage;
   bool isLoading = true;
@@ -52,6 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       phoneController.text = data['phone'] ?? '';
       selectedLanguage = data['language'];
       profileImageUrl = data['profileImageUrl'] ?? '';
+      studentIdController.text = data['studentId'] ?? '';
     }
 
     setState(() => isLoading = false);
@@ -98,6 +100,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'phone': phoneController.text.trim(),
       'language': selectedLanguage,
       'profileImageUrl': profileImageUrl,
+      'studentId': studentIdController.text.trim(),
     };
 
     await FirebaseFirestore.instance
@@ -198,6 +201,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           : null,
                     ),
                     const SizedBox(height: 16),
+                    TextFormField(
+                      controller: studentIdController,
+                      decoration: _buildInputDecoration(
+                        "Student /Staff ID",
+                        Icons.badge,
+                      ),
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Please enter Student ID'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+
                     TextFormField(
                       controller: phoneController,
                       decoration: _buildInputDecoration(
