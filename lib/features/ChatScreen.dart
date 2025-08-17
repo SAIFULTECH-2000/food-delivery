@@ -43,7 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
     List<Map<String, dynamic>> foods,
   ) async {
     const apiKey =
-        'AIzaSyCCXI15-3cxH79zmCcqwfcJC366jlXIMOM'; // Replace with your Gemini API key
+        'AIzaSyDnhEObt447FIMUNlFjtSpvBaXnj_1sLFU'; // Replace with your Gemini API key
     const url =
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
 
