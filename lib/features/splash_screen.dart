@@ -66,6 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
         } else {
           // Authentication failed or cancelled
           _showSnackBar('Fingerprint authentication failed');
+          Navigator.pushReplacementNamed(context, '/info');
         }
       } else {
         // Device doesn't support biometrics → go to info
