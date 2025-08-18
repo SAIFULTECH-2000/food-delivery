@@ -11,7 +11,7 @@ class RewardsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rewards'),
+        title: const Text('Rewards'),
         backgroundColor: AppTheme.accentGreen,
       ),
       body: Padding(
@@ -46,7 +46,14 @@ class RewardsScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
-                        // navigate or open claim logic
+                        // Show success message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("🎉 Reward claimed successfully!"),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,

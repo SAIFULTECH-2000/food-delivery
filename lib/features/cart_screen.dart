@@ -156,6 +156,55 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _handlePayment(String method) async {
+    setState(() => paymentMethod = method);
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Wait 5 seconds
+    await Future.delayed(const Duration(seconds: 5));
+
+    // Close loading
+    Navigator.pop(context);
+
+    // Show success popup
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Success"),
+        content: const Text("Payment processed successfully!"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // close dialog
+              // Run the correct function
+              if (paymentMethod == 'tng') {
+                tng('tng');
+              }
+              if (paymentMethod == 'cod') {
+                codpayment('cod');
+              }
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void tng(String value) {
+    debugPrint("TNG payment processed: $value");
+  }
+
+  void codpayment(String value) {
+    debugPrint("COD payment processed: $value");
+  }
+
   Future<void> _initiatePayment(double amount) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.email == null) return;
@@ -181,7 +230,11 @@ class _CartScreenState extends State<CartScreen> {
           'order-${DateTime.now().millisecondsSinceEpoch}',
       'billpaymentAmount': (amount * 100).toInt().toString(),
     };
-
+    if (paymentMethod == 'tng' || paymentMethod == 'cod') {
+      _handlePayment(paymentMethod);
+      _clearUserCart();
+      return;
+    }
     try {
       final paymentUrl = await createToyyibpayBill(
         billData: billData,
@@ -208,6 +261,76 @@ class _CartScreenState extends State<CartScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Payment error: $e')));
+    }
+  }
+
+  Future<void> _clearUserCart() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint("User not logged in.");
+        return;
+      }
+
+      final cartRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart');
+
+      final cartSnapshot = await cartRef.get();
+
+      if (cartSnapshot.docs.isEmpty) {
+        debugPrint("Cart is empty.");
+        return;
+      }
+
+      // --- Group items ---
+      double totalPrice = 0.0;
+      String? restaurantName;
+      final Map<String, dynamic> items = {};
+
+      for (final cartItem in cartSnapshot.docs) {
+        final data = cartItem.data();
+        final itemId = cartItem.id;
+
+        restaurantName = data['restaurantName']; // assume same restaurant
+        final price = (data['price'] as num).toDouble();
+        final qty = (data['quantity'] as num).toInt();
+        totalPrice += price * qty;
+
+        items[itemId] = {
+          'name': data['name'],
+          'price': price,
+          'quantity': qty,
+          'imageUrl': data['imageUrl'],
+        };
+      }
+
+      // --- Save order to top-level myOrders ---
+      final myOrdersRef = FirebaseFirestore.instance.collection('myOrders');
+      final newOrderRef = myOrdersRef.doc(); // unique order ID
+
+      await newOrderRef.set({
+        'restaurantName': restaurantName ?? 'Unknown',
+        'userId': user.uid,
+        'date': FieldValue.serverTimestamp(),
+        'totalPrice': totalPrice,
+        'items': items,
+      });
+
+      // --- Clear cart after placing order ---
+      final batch = FirebaseFirestore.instance.batch();
+      for (final cartItem in cartSnapshot.docs) {
+        batch.delete(cartItem.reference);
+      }
+      await batch.commit();
+      fetchCartItems();
+
+      debugPrint(
+        "Cart cleared and order placed under myOrders/${newOrderRef.id}",
+      );
+    } catch (e) {
+      debugPrint("Error clearing cart: $e");
     }
   }
 

@@ -109,7 +109,30 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
                       'updated': 'Just now',
                     });
                   });
-                  Navigator.pop(context);
+
+                  Navigator.pop(context); // close bottom sheet / form
+
+                  // ✅ Show success popup
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Text("✅ Success"),
+                        content: const Text(
+                          "Your ticket has been submitted successfully!",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("OK"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 }
               },
               child: const Text("Submit"),

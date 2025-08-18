@@ -459,7 +459,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen> {
                 clipBehavior: Clip.antiAlias,
                 child: PageView(
                   children: [
-                    Image.asset('assets/promo.png', fit: BoxFit.cover),
+                    Container(
+                      color: Colors.yellow, // background color
+                      child: Image.asset(
+                        'assets/promo.png',
+                        fit: BoxFit.fill, // prevent resizing
+                      ),
+                    ),
                   ],
                 ),
               ),

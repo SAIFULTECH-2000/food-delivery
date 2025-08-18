@@ -47,7 +47,7 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final langCode = prefs.getString('language') ?? 'en';
   // OPTIONAL: Call this only once for seeding
-  //await uploadVendorsAndMenus();
+  //  await uploadVendorsAndMenus();
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeNotifier(),

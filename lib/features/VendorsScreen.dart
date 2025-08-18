@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:food_delivery_app/features/favorite_screen.dart';
 import 'package:food_delivery_app/l10n/app_localizations.dart';
 import 'dart:math';
 
@@ -86,6 +87,12 @@ class _VendorsScreenState extends State<VendorsScreen> {
             Navigator.pushNamed(context, '/cart');
           } else if (index == 3) {
             Navigator.pushNamed(context, '/profile');
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoriteScreen()),
+            );
           }
         },
       ),

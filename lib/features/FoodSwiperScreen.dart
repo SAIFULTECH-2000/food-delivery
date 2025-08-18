@@ -49,11 +49,6 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
         );
       }
 
-      setState(() {
-        foodItems = allFoods;
-        isLoading = false;
-      });
-
       // Step 3: Update state
       setState(() {
         foodItems = allFoods;
@@ -87,8 +82,7 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
             Icons.arrow_back,
             color: Theme.of(context).colorScheme.onSurface,
           ),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, '/dashboard'),
+          onPressed: () => Navigator.pop(context), // ✅ simple back
         ),
       ),
       body: PageView.builder(
@@ -98,6 +92,40 @@ class _FoodSwiperScreenState extends State<FoodSwiperScreen> {
         },
       ),
     );
+  }
+}
+
+// ✅ map Firestore ingredient icon string to Flutter IconData
+IconData _mapIcon(String? iconName) {
+  switch ((iconName ?? '').toLowerCase()) {
+    case 'egg_alt':
+      return Icons.egg_alt;
+    case 'ramen_dining':
+      return Icons.ramen_dining;
+    case 'set_meal':
+      return Icons.set_meal;
+    case 'grass':
+      return Icons.grass;
+    case 'rice_bowl':
+      return Icons.rice_bowl;
+    case 'emoji_food_beverage':
+      return Icons.emoji_food_beverage;
+    case 'lunch_dining':
+      return Icons.lunch_dining;
+    case 'restaurant':
+      return Icons.restaurant;
+    case 'restaurant_menu':
+      return Icons.restaurant_menu;
+    case 'local_drink':
+      return Icons.local_drink;
+    case 'kebab_dining':
+      return Icons.kebab_dining;
+    case 'bakery_dining':
+      return Icons.bakery_dining;
+    case 'icecream':
+      return Icons.icecream;
+    default:
+      return Icons.fastfood; // fallback
   }
 }
 
@@ -111,6 +139,29 @@ class FoodDetailCard extends StatefulWidget {
 
 class _FoodDetailCardState extends State<FoodDetailCard> {
   int quantity = 1;
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteStatus();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final favDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favorites')
+        .doc(widget.foodItem['id'])
+        .get();
+
+    setState(() {
+      isFavorite = favDoc.exists;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +171,11 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
 
     return Column(
       children: [
-        // Top section with image and icons
+        // Top section with image and favorite icon
         Stack(
           children: [
             Container(
-              height: 280,
+              height: 200,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.secondary,
                 borderRadius: const BorderRadius.only(
@@ -140,28 +191,66 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
                       vertical: 12,
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
                           icon: Icon(
-                            Icons.arrow_back,
-                            color: theme.canvasColor,
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.red,
                           ),
-                          onPressed: () {
-                            Navigator.pop(context);
+                          onPressed: () async {
+                            final uid = FirebaseAuth.instance.currentUser?.uid;
+                            if (uid == null) return;
+
+                            final favRef = FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(uid)
+                                .collection('favorites')
+                                .doc(item['id']);
+
+                            if (isFavorite) {
+                              // remove from favorites
+                              await favRef.delete();
+                              setState(() => isFavorite = false);
+
+                              _showCutePopup(
+                                context,
+                                title: "Removed 💔",
+                                message:
+                                    "${item['name']} has been removed from your favorites.",
+                                color: Colors.redAccent,
+                              );
+                            } else {
+                              // add to favorites
+                              await favRef.set({
+                                'name': item['name'],
+                                'price': item['price'],
+                                'imageUrl': item['imageUrl'],
+                                'category': item['category'],
+                                'addedAt': FieldValue.serverTimestamp(),
+                              });
+                              setState(() => isFavorite = true);
+
+                              _showCutePopup(
+                                context,
+                                title: "Added 💖",
+                                message:
+                                    "${item['name']} is now in your favorites!",
+                                color: Colors.pinkAccent,
+                              );
+                            }
                           },
                         ),
-                        Icon(Icons.favorite_border, color: theme.canvasColor),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+
                   ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: Image.network(
                       item['imageUrl'] ?? '',
-                      height: 160,
-                      width: 160,
+                      height: 125,
+                      width: 125,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) =>
                           const Icon(Icons.image, size: 100),
@@ -175,7 +264,7 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
 
         // Title and Info
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               Text(
@@ -225,8 +314,9 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
             children: [
               Text("RM", style: theme.textTheme.titleMedium),
               Text(
-                "${item['price']}",
-                style: theme.textTheme.titleLarge?.copyWith(
+                "${(item['price'] as num).toStringAsFixed(2)}",
+
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -270,16 +360,15 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 80,
+          height: 40,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: const [
-              _IngredientChip(name: "Noodle", icon: Icons.ramen_dining),
-              _IngredientChip(name: "Shrimp", icon: Icons.set_meal),
-              _IngredientChip(name: "Egg", icon: Icons.egg_alt),
-              _IngredientChip(name: "Scallion", icon: Icons.grass),
-            ],
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            children: (item['ingredients'] as List).map((ing) {
+              final name = ing['name'] ?? '';
+              final iconName = ing['icon'] ?? '';
+              return _IngredientChip(name: name, icon: _mapIcon(iconName));
+            }).toList(),
           ),
         ),
 
@@ -294,7 +383,7 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            item['desc'] ?? 'No description available.',
+            item['description'] ?? 'No description available.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
             ),
@@ -363,6 +452,64 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showCutePopup(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: color.withOpacity(0.2),
+                  child: Icon(Icons.favorite, color: color, size: 35),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Okay"),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
