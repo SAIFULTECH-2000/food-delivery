@@ -149,7 +149,6 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
       appBar: AppBar(
         title: const Text("Customer Helpdesk"),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
           IconButton(
             onPressed: () {
               showDialog(
