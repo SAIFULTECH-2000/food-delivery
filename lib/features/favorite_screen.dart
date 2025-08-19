@@ -57,7 +57,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       final ordersRef = FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
-          .collection('orders');
+          .collection('cart');
 
       await ordersRef.add({
         'name': item['name'],
