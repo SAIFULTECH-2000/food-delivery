@@ -31,45 +31,57 @@ class LoginScreenState extends State<LoginScreen> {
 
     try {
       String loginInput = emailController.text.trim();
-      String emailToUse = loginInput;
+      String password = passwordController.text.trim();
+      String? emailToUse;
 
-      // Check if input is not an email (no @ symbol, assume it's student/staff ID)
-      if (!loginInput.contains('@')) {
-        // Lookup Firestore for studentId or staffId
-        final snapshot = await FirebaseFirestore.instance
+      if (loginInput.isEmpty || password.isEmpty) {
+        throw FirebaseAuthException(
+          code: 'empty-fields',
+          message: 'Please enter your credentials',
+        );
+      }
+
+      // Check if user typed an email
+      if (loginInput.contains('@')) {
+        emailToUse = loginInput;
+      } else {
+        // Assume it's a studentId first
+        final studentSnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('studentId', isEqualTo: loginInput)
+            .limit(1)
             .get();
 
-        if (snapshot.docs.isEmpty) {
+        if (studentSnapshot.docs.isNotEmpty) {
+          emailToUse = studentSnapshot.docs.first['email'];
+        } else {
+          // Then try staffId
           final staffSnapshot = await FirebaseFirestore.instance
               .collection('users')
               .where('staffId', isEqualTo: loginInput)
+              .limit(1)
               .get();
 
-          if (staffSnapshot.docs.isEmpty) {
-            throw FirebaseAuthException(
-              code: 'user-not-found',
-              message: 'No user found with this Student/Staff ID',
-            );
-          } else {
+          if (staffSnapshot.docs.isNotEmpty) {
             emailToUse = staffSnapshot.docs.first['email'];
           }
-        } else {
-          emailToUse = snapshot.docs.first['email'];
         }
       }
 
-      // Login using the resolved email
+      if (emailToUse == null) {
+        throw FirebaseAuthException(
+          code: 'user-not-found',
+          message: 'No user found with this Email/ID',
+        );
+      }
+
+      // Sign in
       UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: emailToUse,
-            password: passwordController.text.trim(),
-          );
+          .signInWithEmailAndPassword(email: emailToUse, password: password);
 
       await saveUserDataInSession(userCredential);
 
-      // Vendor email list
+      // Vendor list
       const vendorEmails = {
         'kopitiam@aimst.com',
         'aroma@aimst.com',
@@ -77,7 +89,6 @@ class LoginScreenState extends State<LoginScreen> {
         'jaya@aimst.com',
       };
 
-      // Show success toast
       Future.delayed(const Duration(milliseconds: 300), () {
         toastification.show(
           context: context,
