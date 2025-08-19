@@ -227,6 +227,7 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
                                 'price': item['price'],
                                 'imageUrl': item['imageUrl'],
                                 'category': item['category'],
+                                'restaurantName': item['restaurantName'],
                                 'addedAt': FieldValue.serverTimestamp(),
                               });
                               setState(() => isFavorite = true);
