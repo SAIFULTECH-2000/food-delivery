@@ -151,7 +151,31 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Do you want to hear from us?"),
+                  content: const Text("Turn notifications on or off."),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // handle turn off
+                      },
+                      child: const Text("Turn Off"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // handle turn on
+                      },
+                      child: const Text("Turn On"),
+                    ),
+                  ],
+                ),
+              );
+            },
             icon: const Icon(Icons.notifications_outlined),
           ),
         ],
