@@ -64,6 +64,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         'price': item['price'],
         'imageUrl': item['imageUrl'],
         'category': item['category'],
+        'restaurantName': item['restaurantName'] ?? 'Unknown Restaurant',
         'quantity': 1,
         'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
