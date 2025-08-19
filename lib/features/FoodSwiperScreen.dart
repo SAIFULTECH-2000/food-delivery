@@ -364,7 +364,7 @@ class _FoodDetailCardState extends State<FoodDetailCard> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            children: (item['ingredients'] as List).map((ing) {
+            children: ((item['ingredients'] as List?) ?? []).map((ing) {
               final name = ing['name'] ?? '';
               final iconName = ing['icon'] ?? '';
               return _IngredientChip(name: name, icon: _mapIcon(iconName));
