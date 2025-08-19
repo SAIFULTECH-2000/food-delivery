@@ -143,6 +143,8 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
     );
   }
 
+  bool notificationsOn = true; // session state
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,15 +161,15 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
                   actions: [
                     TextButton(
                       onPressed: () {
+                        setState(() => notificationsOn = false);
                         Navigator.pop(context);
-                        // handle turn off
                       },
                       child: const Text("Turn Off"),
                     ),
                     ElevatedButton(
                       onPressed: () {
+                        setState(() => notificationsOn = true);
                         Navigator.pop(context);
-                        // handle turn on
                       },
                       child: const Text("Turn On"),
                     ),
@@ -175,7 +177,11 @@ class _HelpdeskScreenState extends State<HelpdeskScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.notifications_outlined),
+            icon: Icon(
+              notificationsOn
+                  ? Icons.notifications_outlined
+                  : Icons.notifications_off, // slash icon
+            ),
           ),
         ],
       ),

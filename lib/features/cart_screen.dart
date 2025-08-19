@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/core/theme/app_theme.dart';
+import 'package:food_delivery_app/features/ConfirmPaymentScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
@@ -231,6 +232,18 @@ class _CartScreenState extends State<CartScreen> {
       'billpaymentAmount': (amount * 100).toInt().toString(),
     };
     if (paymentMethod == 'tng' || paymentMethod == 'cod') {
+      if (paymentMethod == 'tng') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ConfirmPaymentScreen(
+              amount: amount, // pass your price here dynamically
+            ),
+          ),
+        );
+        return;
+      }
+
       _handlePayment(paymentMethod);
       _clearUserCart();
       return;
@@ -387,18 +400,40 @@ class _CartScreenState extends State<CartScreen> {
                             title: const Text('Select Delivery Time'),
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
-                              children: List.generate(5, (index) {
-                                final hour = index + 1;
-                                return ListTile(
-                                  title: Text(
-                                    '$hour hour${hour > 1 ? 's' : ''} from now',
-                                  ),
-                                  onTap: () => Navigator.of(context).pop(hour),
-                                );
-                              }),
+                              children: [
+                                // ✅ Deliver Now option
+                                ListTile(
+                                  title: const Text('Deliver Now'),
+                                  onTap: () => Navigator.of(
+                                    context,
+                                  ).pop(0), // 0 means immediate
+                                ),
+                                const Divider(),
+
+                                // ✅ 1h to 5h options
+                                ...List.generate(5, (index) {
+                                  final hour = index + 1;
+                                  return ListTile(
+                                    title: Text(
+                                      '$hour hour${hour > 1 ? 's' : ''} from now',
+                                    ),
+                                    onTap: () =>
+                                        Navigator.of(context).pop(hour),
+                                  );
+                                }),
+                              ],
                             ),
                           ),
                         );
+
+                        // Example usage
+                        if (selectedHour != null) {
+                          if (selectedHour == 0) {
+                            print("Deliver Now selected 🚚");
+                          } else {
+                            print("Deliver in $selectedHour hour(s) 🕒");
+                          }
+                        }
 
                         if (selectedHour != null) {
                           updateDeliveryMethod('delivery');
@@ -418,7 +453,7 @@ class _CartScreenState extends State<CartScreen> {
                       PopupMenuItem(value: 'pickup', child: Text('Pickup Now')),
                       PopupMenuItem(
                         value: 'delivery',
-                        child: Text('Order For Later'),
+                        child: Text('Select Delivery Time'),
                       ),
                     ],
                   ),
